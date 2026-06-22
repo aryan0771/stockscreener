@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles, Loader2 } from "lucide-react";
 import { generateStockSummaryAction } from "@/server/ai.actions";
+import ReactMarkdown from 'react-markdown';
 
 export function AiSummary({ ticker }: { ticker: string }) {
   const [summary, setSummary] = useState<string | null>(null);
@@ -47,8 +48,8 @@ export function AiSummary({ ticker }: { ticker: string }) {
         )}
         {error && <div className="text-red-500 py-4">{error}</div>}
         {summary && (
-          <div className="prose prose-sm dark:prose-invert max-w-none pt-4 whitespace-pre-wrap">
-            {summary}
+          <div className="prose prose-sm dark:prose-invert max-w-none pt-4">
+            <ReactMarkdown>{summary}</ReactMarkdown>
           </div>
         )}
         {!summary && !loading && !error && (

@@ -104,21 +104,25 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
       </div>
 
       <div className="grid gap-8 md:grid-cols-3">
-        {/* Main Chart Column */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Price Chart (4M)</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[400px]">
-            {chartData && chartData.length > 0 ? (
-              <TradingViewChart data={chartData} />
-            ) : (
-              <div className="flex h-full items-center justify-center text-muted-foreground">
-                No chart data available
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Main Chart & AI Summary Column */}
+        <div className="md:col-span-2 space-y-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Price Chart (4M)</CardTitle>
+            </CardHeader>
+            <CardContent className="h-[400px]">
+              {chartData && chartData.length > 0 ? (
+                <TradingViewChart data={chartData} />
+              ) : (
+                <div className="flex h-full items-center justify-center text-muted-foreground">
+                  No chart data available
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <AiSummary ticker={upperTicker} />
+        </div>
 
         {/* Valuation & Metrics Column */}
         <div className="space-y-4">
@@ -219,8 +223,6 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
               </div>
             </CardContent>
           </Card>
-          
-          <AiSummary ticker={upperTicker} />
         </div>
       </div>
 
