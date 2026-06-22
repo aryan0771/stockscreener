@@ -8,16 +8,93 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Search, Database } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useEffect, Suspense, useCallback } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
-export default function ScreenerPage() {
+function ScreenerContent() {
+  const searchParams = useSearchParams();
   const [minPe, setMinPe] = useState("");
   const [maxPe, setMaxPe] = useState("");
   const [minRoe, setMinRoe] = useState("");
   const [minMos, setMinMos] = useState("");
+  const [signal, setSignal] = useState<string>("");
+  const [trend, setTrend] = useState<string>("");
+  const [healthyRsi, setHealthyRsi] = useState<boolean>(false);
+  
   const [loading, setLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Initialize from searchParams
+  useEffect(() => {
+    let shouldSearch = false;
+    if (searchParams.get("minMos")) {
+      setMinMos(searchParams.get("minMos")!);
+      shouldSearch = true;
+    }
+    if (searchParams.get("signal")) {
+      setSignal(searchParams.get("signal")!);
+      shouldSearch = true;
+    }
+    if (searchParams.get("trend")) {
+      setTrend(searchParams.get("trend")!);
+      shouldSearch = true;
+    }
+    if (searchParams.get("healthyRsi")) {
+      setHealthyRsi(searchParams.get("healthyRsi") === "true");
+      shouldSearch = true;
+    }
+
+    if (shouldSearch) {
+      // Small timeout to ensure state is flushed if needed, 
+      // but in React 18 setting state and calling async action in same tick might be fine.
+      // Better to use an effect dependency.
+    }
+  }, [searchParams]);
+
+  const executeSearch = useCallback(async (
+    customMinPe: string, customMaxPe: string, customMinRoe: string, customMinMos: string, 
+    customSignal: string, customTrend: string, customHealthyRsi: boolean
+  ) => {
+    setLoading(true);
+
+    const filters: any = {};
+    if (customMinPe) filters.minPe = parseFloat(customMinPe);
+    if (customMaxPe) filters.maxPe = parseFloat(customMaxPe);
+    if (customMinRoe) filters.minRoe = parseFloat(customMinRoe) / 100; // convert % to decimal
+    if (customMinMos) filters.minMarginOfSafety = parseFloat(customMinMos);
+    if (customSignal && customSignal !== "All") filters.signal = customSignal;
+    if (customTrend && customTrend !== "All") filters.trend = customTrend;
+    if (customHealthyRsi) filters.healthyRsi = true;
+
+    const res = await screenStocksAction(filters);
+    setLoading(false);
+    setHasSearched(true);
+
+    if (res.success) {
+      setResults(res.stocks || []);
+    } else {
+      alert(res.error);
+    }
+  }, []);
+
+  // Trigger search when searchParams load initially
+  useEffect(() => {
+    if (searchParams.toString()) {
+      executeSearch(
+        searchParams.get("minPe") || minPe,
+        searchParams.get("maxPe") || maxPe,
+        searchParams.get("minRoe") || minRoe,
+        searchParams.get("minMos") || minMos,
+        searchParams.get("signal") || signal,
+        searchParams.get("trend") || trend,
+        searchParams.get("healthyRsi") === "true" || healthyRsi
+      );
+    }
+  }, [searchParams, executeSearch]); // Only runs on mount when searchParams populate
 
   const handleSyncNifty100 = async () => {
     if (confirm("This will fetch ~100 stocks sequentially from Yahoo Finance and take 30-60 seconds. Continue?")) {
@@ -38,23 +115,7 @@ export default function ScreenerPage() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    const filters: any = {};
-    if (minPe) filters.minPe = parseFloat(minPe);
-    if (maxPe) filters.maxPe = parseFloat(maxPe);
-    if (minRoe) filters.minRoe = parseFloat(minRoe) / 100; // convert % to decimal
-    if (minMos) filters.minMarginOfSafety = parseFloat(minMos);
-
-    const res = await screenStocksAction(filters);
-    setLoading(false);
-    setHasSearched(true);
-
-    if (res.success) {
-      setResults(res.stocks || []);
-    } else {
-      alert(res.error);
-    }
+    executeSearch(minPe, maxPe, minRoe, minMos, signal, trend, healthyRsi);
   };
 
   return (
@@ -93,6 +154,33 @@ export default function ScreenerPage() {
         <CardContent>
           <form onSubmit={handleSearch} className="grid gap-6 md:grid-cols-4 lg:grid-cols-5 items-end">
             <div className="space-y-2">
+              <Label htmlFor="signal">Algorithm Signal</Label>
+              <Select value={signal} onValueChange={(val) => setSignal(val || "")}>
+                <SelectTrigger id="signal">
+                  <SelectValue placeholder="Any Signal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">Any Signal</SelectItem>
+                  <SelectItem value="BuyWatch">Strong Buy / Watch Closely</SelectItem>
+                  <SelectItem value="Strong Buy">Strong Buy Only</SelectItem>
+                  <SelectItem value="Watch Closely">Watch Closely Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="trend">Price Trend</Label>
+              <Select value={trend} onValueChange={(val) => setTrend(val || "")}>
+                <SelectTrigger id="trend">
+                  <SelectValue placeholder="Any Trend" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">Any Trend</SelectItem>
+                  <SelectItem value="Uptrend">Uptrend (Near 52W High)</SelectItem>
+                  <SelectItem value="Downtrend">Downtrend (&gt;30% Drop)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="minPe">Min P/E</Label>
               <Input id="minPe" type="number" placeholder="0" value={minPe} onChange={(e) => setMinPe(e.target.value)} />
             </div>
@@ -107,6 +195,12 @@ export default function ScreenerPage() {
             <div className="space-y-2">
               <Label htmlFor="minMos">Min Margin of Safety (%)</Label>
               <Input id="minMos" type="number" placeholder="20" value={minMos} onChange={(e) => setMinMos(e.target.value)} />
+            </div>
+            <div className="space-y-2 flex flex-col justify-end pb-2">
+              <div className="flex items-center space-x-2">
+                <Switch id="healthyRsi" checked={healthyRsi} onCheckedChange={setHealthyRsi} />
+                <Label htmlFor="healthyRsi">Healthy RSI (30-60)</Label>
+              </div>
             </div>
             <Button type="submit" disabled={loading} className="w-full">
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
@@ -172,5 +266,13 @@ export default function ScreenerPage() {
         </Card>
       )}
     </div>
+  );
+}
+
+export default function ScreenerPage() {
+  return (
+    <Suspense fallback={<div className="container py-8 flex justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+      <ScreenerContent />
+    </Suspense>
   );
 }
