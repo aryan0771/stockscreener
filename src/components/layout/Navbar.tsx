@@ -3,9 +3,23 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function Navbar() {
   const { data: session } = useSession();
+  const router = useRouter();
+  const [search, setSearch] = useState("");
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (search.trim()) {
+      router.push(`/stocks/${search.trim().toUpperCase()}`);
+      setSearch("");
+    }
+  };
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full">
@@ -33,7 +47,16 @@ export function Navbar() {
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="w-full flex-1 md:w-auto md:flex-none">
-            {/* Command Menu or Search could go here */}
+            <form onSubmit={handleSearch} className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search ticker (e.g. AAPL)..."
+                className="w-full bg-background pl-8 md:w-[200px] lg:w-[300px]"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </form>
           </div>
           <nav className="flex items-center space-x-2">
             {session ? (

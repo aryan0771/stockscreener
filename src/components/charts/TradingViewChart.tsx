@@ -1,6 +1,6 @@
 "use client";
 
-import { createChart, ColorType, IChartApi, ISeriesApi } from 'lightweight-charts';
+import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickSeries, HistogramSeries } from 'lightweight-charts';
 import React, { useEffect, useRef } from 'react';
 
 export interface ChartData {
@@ -64,7 +64,7 @@ export function TradingViewChart(props: TradingViewChartProps) {
       },
     });
 
-    const candlestickSeries = chart.addCandlestickSeries({
+    const candlestickSeries = chart.addSeries(CandlestickSeries, {
       upColor: '#26a69a',
       downColor: '#ef5350',
       borderVisible: false,
@@ -75,7 +75,7 @@ export function TradingViewChart(props: TradingViewChartProps) {
     candlestickSeries.setData(data as any);
 
     if (volumeData && volumeData.length > 0) {
-      const volumeSeries = chart.addHistogramSeries({
+      const volumeSeries = chart.addSeries(HistogramSeries, {
         color: '#26a69a',
         priceFormat: {
           type: 'volume',
