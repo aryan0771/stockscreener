@@ -1,0 +1,238 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String?
+  email         String?   @unique
+  passwordHash  String?
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts               Account[]
+  sessions               Session[]
+  watchlists             Watchlist[]
+  customRatings          CustomRating[]
+  investmentJournals     InvestmentJournal[]
+  dailyNotes             DailyNote[]
+  technicalAnalysisNotes TechnicalAnalysisNote[]
+  savedScreens           SavedScreen[]
+  portfolioSimulators    PortfolioSimulator[]
+  missedOpportunities    MissedOpportunity[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Stock {
+  id              String   @id @default(uuid())
+  ticker          String   @unique
+  companyName     String
+  sector          String?
+  industry        String?
+  exchange        String?
+  marketCap       Float?
+  currentPrice    Float?
+  pe              Float?
+  pb              Float?
+  eps             Float?
+  roe             Float?
+  roce            Float?
+  debtToEquity    Float?
+  dividendYield   Float?
+  revenueGrowth   Float?
+  profitGrowth    Float?
+  promoterHolding Float?
+  fiiHolding      Float?
+  diiHolding      Float?
+  intrinsicValue  Float?
+  fairValue       Float?
+  marginOfSafety  Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  watchlistStocks        WatchlistStock[]
+  customRatings          CustomRating[]
+  investmentJournals     InvestmentJournal[]
+  dailyNotes             DailyNote[]
+  technicalAnalysisNotes TechnicalAnalysisNote[]
+  portfolioSimulators    PortfolioSimulator[]
+  missedOpportunities    MissedOpportunity[]
+}
+
+model Watchlist {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  watchlistStocks WatchlistStock[]
+}
+
+model WatchlistStock {
+  id          String   @id @default(uuid())
+  watchlistId String
+  stockId     String
+  createdAt   DateTime @default(now())
+
+  watchlist Watchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+  stock     Stock     @relation(fields: [stockId], references: [id], onDelete: Cascade)
+
+  @@unique([watchlistId, stockId])
+}
+
+model CustomRating {
+  id                String   @id @default(uuid())
+  stockId           String
+  userId            String
+  managementQuality Int?     @db.SmallInt // 1-10
+  moatStrength      Int?     @db.SmallInt // 1-10
+  convictionScore   Int?     @db.SmallInt // 1-10
+  cyclicalityScore  Int?     @db.SmallInt // 1-10
+  governanceScore   Int?     @db.SmallInt // 1-10
+  notes             String?  @db.Text
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([stockId, userId])
+}
+
+model InvestmentJournal {
+  id              String   @id @default(uuid())
+  stockId         String
+  userId          String
+  buyThesis       String?  @db.Text
+  riskFactors     String?  @db.Text
+  exitCriteria    String?  @db.Text
+  convictionLevel String? // e.g., "High", "Medium", "Low"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([stockId, userId])
+}
+
+model DailyNote {
+  id        String   @id @default(uuid())
+  stockId   String
+  userId    String
+  note      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TechnicalAnalysisNote {
+  id              String   @id @default(uuid())
+  stockId         String
+  userId          String
+  supportLevel    Float?
+  resistanceLevel Float?
+  trendDirection  String? // e.g., "Uptrend", "Downtrend", "Sideways"
+  breakoutZone    String?
+  technicalNotes  String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([stockId, userId])
+}
+
+model SavedScreen {
+  id         String   @id @default(uuid())
+  userId     String
+  name       String
+  filterJson String   @db.Text // Store complex AND/OR query criteria as JSON
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PortfolioSimulator {
+  id               String   @id @default(uuid())
+  userId           String
+  stockId          String
+  investmentAmount Float
+  targetPrice      Float?
+  stopLoss         Float?
+  expectedReturn   Float?
+  riskRewardRatio  Float?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MissedOpportunity {
+  id              String   @id @default(uuid())
+  stockId         String
+  userId          String
+  reasonNotBought String   @db.Text
+  observation     String?  @db.Text
+  outcome         String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
