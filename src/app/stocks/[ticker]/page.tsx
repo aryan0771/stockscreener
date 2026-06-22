@@ -12,6 +12,7 @@ import { WatchlistService } from "@/services/watchlistService";
 import { JournalService } from "@/services/journalService";
 import { AddStockToWatchlistMenu } from "./_components/AddStockToWatchlistMenu";
 import { JournalEditor } from "./_components/JournalEditor";
+import { AiSummary } from "./_components/AiSummary";
 
 export default async function StockDetailPage({ params }: { params: Promise<{ ticker: string }> }) {
   const { ticker } = await params;
@@ -132,6 +133,8 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
               </div>
             </CardContent>
           </Card>
+          
+          <AiSummary ticker={upperTicker} />
         </div>
       </div>
 
