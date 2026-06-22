@@ -12,9 +12,9 @@ export class StockSyncService {
     try {
       // Fetch quote summary modules: price, defaultKeyStatistics, financialData
       const queryOptions = {
-        modules: ['price', 'defaultKeyStatistics', 'financialData', 'summaryProfile'],
+        modules: ['price', 'defaultKeyStatistics', 'financialData', 'summaryProfile'] as any,
       };
-      const result = await yahooFinance.quoteSummary(ticker, queryOptions);
+      const result: any = await yahooFinance.quoteSummary(ticker, queryOptions);
 
       const price = result.price;
       const stats = result.defaultKeyStatistics;
@@ -133,5 +133,31 @@ export class StockSyncService {
       }
     }
     return results;
+  }
+
+  /**
+   * Fetch historical daily data for charting.
+   */
+  static async getHistoricalData(ticker: string, period1: string, period2: string = new Date().toISOString().split('T')[0]) {
+    try {
+      const result: any[] = await yahooFinance.historical(ticker, {
+        period1,
+        period2,
+        interval: '1d',
+      });
+
+      return result.map((day: any) => ({
+        time: day.date.toISOString().split('T')[0],
+        open: day.open,
+        high: day.high,
+        low: day.low,
+        close: day.close,
+        value: day.volume,
+        color: day.close >= day.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)',
+      }));
+    } catch (error) {
+      console.error(`Error fetching historical data for ${ticker}:`, error);
+      return [];
+    }
   }
 }

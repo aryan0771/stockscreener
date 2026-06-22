@@ -1,0 +1,152 @@
+import { StockSyncService } from "@/services/stockSyncService";
+import { DecisionScoreEngine } from "@/services/decisionScoreEngine";
+import { TradingViewChart } from "@/components/charts/TradingViewChart";
+import { notFound } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+export default async function StockDetailPage({ params }: { params: Promise<{ ticker: string }> }) {
+  const { ticker } = await params;
+  
+  if (!ticker) {
+    notFound();
+  }
+
+  const upperTicker = ticker.toUpperCase();
+
+  // Sync / Get stock
+  let stock;
+  try {
+    stock = await StockSyncService.syncStock(upperTicker);
+  } catch (error) {
+    console.error("Error syncing stock", error);
+    notFound();
+  }
+
+  // Get historical data for the last 6 months
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  const chartData = await StockSyncService.getHistoricalData(upperTicker, sixMonthsAgo.toISOString().split('T')[0]);
+
+  // Score
+  const scoreResult = DecisionScoreEngine.calculateScore(stock);
+
+  return (
+    <div className="container py-8 space-y-8">
+      {/* Header section */}
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">{stock.companyName}</h1>
+          <p className="text-muted-foreground text-lg">{stock.exchange}: {stock.ticker} &bull; {stock.sector} &bull; {stock.industry}</p>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <div className="text-4xl font-bold">${stock.currentPrice?.toFixed(2) || 'N/A'}</div>
+          <Badge variant="outline" className={`text-base ${scoreResult.color}`}>
+            {scoreResult.label} (Score: {scoreResult.score})
+          </Badge>
+        </div>
+      </div>
+
+      <div className="grid gap-8 md:grid-cols-3">
+        {/* Main Chart Column */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Price Chart (6M)</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[400px]">
+            {chartData && chartData.length > 0 ? (
+              <TradingViewChart data={chartData} />
+            ) : (
+              <div className="flex h-full items-center justify-center text-muted-foreground">
+                No chart data available
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Valuation & Metrics Column */}
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Valuation Metrics</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">P/E Ratio</span>
+                <span className="font-medium">{stock.pe?.toFixed(2) || 'N/A'}</span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">P/B Ratio</span>
+                <span className="font-medium">{stock.pb?.toFixed(2) || 'N/A'}</span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">EPS (TTM)</span>
+                <span className="font-medium">${stock.eps?.toFixed(2) || 'N/A'}</span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">ROE</span>
+                <span className="font-medium">{stock.roe ? (stock.roe * 100).toFixed(2) + '%' : 'N/A'}</span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">Div Yield</span>
+                <span className="font-medium">{stock.dividendYield ? (stock.dividendYield * 100).toFixed(2) + '%' : 'N/A'}</span>
+              </div>
+              
+              <div className="pt-4 border-t border-dashed">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-lg">Intrinsic Value</span>
+                  <span className="font-bold text-xl">${stock.intrinsicValue?.toFixed(2) || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between items-center mt-2">
+                  <span className="font-semibold text-lg">Margin of Safety</span>
+                  <span className={`font-bold text-xl ${
+                    stock.marginOfSafety && stock.marginOfSafety > 20 
+                      ? 'text-emerald-500' 
+                      : stock.marginOfSafety && stock.marginOfSafety > 0 
+                        ? 'text-yellow-500' 
+                        : 'text-red-500'
+                  }`}>
+                    {stock.marginOfSafety ? stock.marginOfSafety.toFixed(2) + '%' : 'N/A'}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Tabs for Journal / Notes / Technicals */}
+      <Card>
+        <Tabs defaultValue="thesis" className="w-full">
+          <CardHeader className="border-b">
+            <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
+              <TabsTrigger value="thesis">Thesis</TabsTrigger>
+              <TabsTrigger value="risks">Risks</TabsTrigger>
+              <TabsTrigger value="technicals">Technicals</TabsTrigger>
+              <TabsTrigger value="notes">Notes</TabsTrigger>
+            </TabsList>
+          </CardHeader>
+          <CardContent className="p-6">
+            <TabsContent value="thesis" className="mt-0">
+              <h3 className="text-lg font-semibold mb-2">Investment Thesis</h3>
+              <p className="text-muted-foreground">Log your buy thesis here (Phase 4 integration).</p>
+            </TabsContent>
+            <TabsContent value="risks" className="mt-0">
+              <h3 className="text-lg font-semibold mb-2">Risk Factors</h3>
+              <p className="text-muted-foreground">Log your risk factors here (Phase 4 integration).</p>
+            </TabsContent>
+            <TabsContent value="technicals" className="mt-0">
+              <h3 className="text-lg font-semibold mb-2">Technical Analysis</h3>
+              <p className="text-muted-foreground">Log support/resistance here (Phase 4 integration).</p>
+            </TabsContent>
+            <TabsContent value="notes" className="mt-0">
+              <h3 className="text-lg font-semibold mb-2">Daily Notes</h3>
+              <p className="text-muted-foreground">Add chronological notes here (Phase 4 integration).</p>
+            </TabsContent>
+          </CardContent>
+        </Tabs>
+      </Card>
+    </div>
+  );
+}
