@@ -5,8 +5,10 @@ import { WatchlistService } from "@/services/watchlistService";
 import { prisma } from "@/lib/db";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Bookmark, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DecisionScoreEngine } from "@/services/decisionScoreEngine";
+import { SyncDashboardButton } from "./_components/SyncDashboardButton";
+import { Activity, TrendingDown, Target, ShieldCheck, ArrowRight, BookOpen, Bookmark, TrendingUp } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -27,13 +29,89 @@ export default async function DashboardPage() {
     take: 5,
   });
 
+  // Calculate Market Metrics
+  const allStocks = await prisma.stock.findMany();
+  
+  let belowIntrinsic = 0;
+  let strongBuy = 0;
+  let watchClosely = 0;
+  let uptrend = 0;
+  let downtrend = 0;
+  let healthyRsi = 0;
+
+  for (const stock of allStocks) {
+    if (stock.marginOfSafety && stock.marginOfSafety > 0) belowIntrinsic++;
+    
+    const { label } = DecisionScoreEngine.calculateScore(stock);
+    if (label === "Strong Buy") strongBuy++;
+    if (label === "Watch Closely") watchClosely++;
+
+    if (stock.currentPrice && stock.fiftyTwoWeekHigh) {
+      const drop = ((stock.fiftyTwoWeekHigh - stock.currentPrice) / stock.fiftyTwoWeekHigh) * 100;
+      if (drop <= 15) uptrend++;
+      if (drop > 30) downtrend++;
+    }
+
+    if (stock.rsi !== null && stock.rsi !== undefined && stock.rsi >= 30 && stock.rsi <= 60) healthyRsi++;
+  }
+
   return (
     <div className="container py-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Welcome back, {session.user.name || "Investor"}</h1>
-        <p className="text-muted-foreground">
-          Here is an overview of your portfolio tracking and research activity.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">Welcome back, {session.user.name || "Investor"}</h1>
+          <p className="text-muted-foreground">
+            Here is an overview of your portfolio tracking and the latest market intelligence.
+          </p>
+        </div>
+        <SyncDashboardButton />
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {/* Market Metrics Row 1 */}
+        <Card className="bg-gradient-to-br from-card to-emerald-900/10 border-emerald-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Strong Buy / Watch</CardTitle>
+            <Target className="h-4 w-4 text-emerald-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{strongBuy} <span className="text-muted-foreground text-sm font-normal">/ {watchClosely}</span></div>
+            <p className="text-xs text-muted-foreground mt-1">Algorithm buy signals</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-card to-blue-900/10 border-blue-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Below Intrinsic Value</CardTitle>
+            <ShieldCheck className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{belowIntrinsic}</div>
+            <p className="text-xs text-muted-foreground mt-1">Margin of safety &gt; 0%</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-card to-orange-900/10 border-orange-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Uptrend / Downtrend</CardTitle>
+            <Activity className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{uptrend} <span className="text-muted-foreground text-sm font-normal">/ {downtrend}</span></div>
+            <p className="text-xs text-muted-foreground mt-1">Price momentum</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-card to-purple-900/10 border-purple-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Healthy RSI</CardTitle>
+            <TrendingUp className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{healthyRsi}</div>
+            <p className="text-xs text-muted-foreground mt-1">RSI between 30 - 60</p>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
