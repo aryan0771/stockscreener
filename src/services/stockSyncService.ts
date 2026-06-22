@@ -11,9 +11,21 @@ export class StockSyncService {
    */
   static async syncStock(ticker: string) {
     try {
-      // Fetch quote summary modules: price, defaultKeyStatistics, financialData
+      // 1. Check if we already have fresh data (updated within the last 24 hours)
+      const existingStock = await prisma.stock.findUnique({ where: { ticker } });
+      if (existingStock) {
+        const oneDayAgo = new Date();
+        oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+        
+        if (existingStock.updatedAt > oneDayAgo && existingStock.fiftyTwoWeekHigh !== null) {
+          // It's fresh enough, return cached DB version
+          return existingStock;
+        }
+      }
+
+      // Fetch quote summary modules: price, defaultKeyStatistics, financialData, summaryProfile, summaryDetail
       const queryOptions = {
-        modules: ['price', 'defaultKeyStatistics', 'financialData', 'summaryProfile'] as any,
+        modules: ['price', 'defaultKeyStatistics', 'financialData', 'summaryProfile', 'summaryDetail'] as any,
       };
       const result: any = await yahooFinance.quoteSummary(ticker, queryOptions);
 
@@ -21,6 +33,7 @@ export class StockSyncService {
       const stats = result.defaultKeyStatistics;
       const financial = result.financialData;
       const profile = result.summaryProfile;
+      const detail = result.summaryDetail;
 
       if (!price) {
         throw new Error(`Could not fetch price data for ${ticker}`);
@@ -34,9 +47,15 @@ export class StockSyncService {
       const marketCap = price.marketCap || undefined;
       const currentPrice = price.regularMarketPrice || undefined;
       
-      const pe = profile?.trailingPE || stats?.trailingPE || undefined;
-      const pb = stats?.priceToBook || undefined;
       const eps = stats?.trailingEps || undefined;
+      let pe = profile?.trailingPE || stats?.trailingPE || undefined;
+      
+      // Calculate PE manually if it's missing but we have current price and EPS
+      if (!pe && currentPrice && eps && eps > 0) {
+        pe = currentPrice / eps;
+      }
+
+      const pb = stats?.priceToBook || undefined;
       const roe = financial?.returnOnEquity || undefined;
       // ROCE is not directly available, but we might approximate or leave null
       const debtToEquity = financial?.debtToEquity || undefined;
@@ -65,6 +84,49 @@ export class StockSyncService {
         }
       }
 
+      const fiftyTwoWeekHigh = detail?.fiftyTwoWeekHigh || undefined;
+      const fiftyTwoWeekLow = detail?.fiftyTwoWeekLow || undefined;
+
+      // Calculate Industry P/E
+      let industryPe: number | undefined = undefined;
+      if (industry && industry !== 'Unknown') {
+        const industryStocks = await prisma.stock.aggregate({
+          where: { industry, pe: { not: null } },
+          _avg: { pe: true },
+        });
+        if (industryStocks._avg.pe) {
+          industryPe = industryStocks._avg.pe;
+        }
+      }
+
+      // Calculate RSI (14-day) using local historical data
+      let rsi: number | undefined = undefined;
+      const recentHistory = await prisma.historicalPrice.findMany({
+        where: { stockId: existingStock?.id },
+        orderBy: { date: 'desc' },
+        take: 15,
+      });
+
+      if (recentHistory.length >= 15) {
+        let gains = 0;
+        let losses = 0;
+        // reverse to process chronological
+        const chronoHistory = recentHistory.reverse();
+        for (let i = 1; i < chronoHistory.length; i++) {
+          const change = chronoHistory[i].close - chronoHistory[i - 1].close;
+          if (change > 0) gains += change;
+          else losses += Math.abs(change);
+        }
+        const avgGain = gains / 14;
+        const avgLoss = losses / 14;
+        if (avgLoss === 0) {
+          rsi = 100;
+        } else {
+          const rs = avgGain / avgLoss;
+          rsi = 100 - (100 / (1 + rs));
+        }
+      }
+
       // Upsert into database
       const stock = await prisma.stock.upsert({
         where: { ticker },
@@ -88,6 +150,10 @@ export class StockSyncService {
           intrinsicValue,
           fairValue,
           marginOfSafety,
+          fiftyTwoWeekHigh,
+          fiftyTwoWeekLow,
+          rsi,
+          industryPe,
         },
         create: {
           ticker,
@@ -110,6 +176,10 @@ export class StockSyncService {
           intrinsicValue,
           fairValue,
           marginOfSafety,
+          fiftyTwoWeekHigh,
+          fiftyTwoWeekLow,
+          rsi,
+          industryPe,
         },
       });
 

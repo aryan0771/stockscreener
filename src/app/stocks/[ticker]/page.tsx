@@ -112,6 +112,30 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
                 <span className="text-muted-foreground">Div Yield</span>
                 <span className="font-medium">{stock.dividendYield ? (stock.dividendYield * 100).toFixed(2) + '%' : 'N/A'}</span>
               </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">52W High</span>
+                <span className="font-medium">{stock.fiftyTwoWeekHigh ? `$${stock.fiftyTwoWeekHigh.toFixed(2)}` : 'N/A'}</span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">52W Low</span>
+                <span className="font-medium">{stock.fiftyTwoWeekLow ? `$${stock.fiftyTwoWeekLow.toFixed(2)}` : 'N/A'}</span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">RSI (14)</span>
+                <span className={`font-medium ${
+                  stock.rsi !== undefined && stock.rsi !== null
+                    ? stock.rsi >= 45 && stock.rsi <= 65 
+                      ? 'text-emerald-500' 
+                      : 'text-red-500'
+                    : ''
+                }`}>
+                  {stock.rsi ? stock.rsi.toFixed(2) : 'N/A'}
+                </span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">Industry P/E <span className="text-[10px] italic">(guess)</span></span>
+                <span className="font-medium">{stock.industryPe ? stock.industryPe.toFixed(2) : 'N/A'}</span>
+              </div>
               
               <div className="pt-4 border-t border-dashed">
                 <div className="flex justify-between items-center">

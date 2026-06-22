@@ -90,11 +90,15 @@ model Stock {
   profitGrowth    Float?
   promoterHolding Float?
   fiiHolding      Float?
-  diiHolding      Float?
-  intrinsicValue  Float?
-  fairValue       Float?
-  marginOfSafety  Float?
-  createdAt       DateTime @default(now())
+  diiHolding       Float?
+  intrinsicValue   Float?
+  fairValue        Float?
+  marginOfSafety   Float?
+  fiftyTwoWeekHigh Float?
+  fiftyTwoWeekLow  Float?
+  rsi              Float?
+  industryPe       Float?
+  createdAt        DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   watchlistStocks        WatchlistStock[]
