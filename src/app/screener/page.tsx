@@ -110,7 +110,7 @@ export default function ScreenerPage() {
                           </Link>
                         </td>
                         <td className="p-4">{stock.companyName}</td>
-                        <td className="p-4 text-right">${stock.currentPrice?.toFixed(2) || "N/A"}</td>
+                        <td className="p-4 text-right">₹{stock.currentPrice?.toFixed(2) || "N/A"}</td>
                         <td className="p-4 text-right">{stock.pe?.toFixed(2) || "N/A"}</td>
                         <td className="p-4 text-right">
                           {stock.roe ? (stock.roe * 100).toFixed(2) + "%" : "N/A"}

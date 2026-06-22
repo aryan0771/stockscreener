@@ -70,7 +70,7 @@ export default async function WatchlistDetailPage({ params }: { params: Promise<
                         </Link>
                       </td>
                       <td className="p-4">{ws.stock.companyName}</td>
-                      <td className="p-4">${ws.stock.currentPrice?.toFixed(2) || "N/A"}</td>
+                      <td className="p-4">₹{ws.stock.currentPrice?.toFixed(2) || "N/A"}</td>
                       <td className="p-4">
                         <span className={`font-medium ${
                           ws.stock.marginOfSafety && ws.stock.marginOfSafety > 20 ? "text-emerald-500" :

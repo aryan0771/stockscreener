@@ -49,6 +49,41 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
     journal = await JournalService.getJournal(upperTicker, session.user.id);
   }
 
+  const getPeScore = (pe?: number | null) => {
+    if (pe === undefined || pe === null) return null;
+    if (pe < 0) return { score: 1, color: 'text-red-500' };
+    if (pe < 10) return { score: 5, color: 'text-emerald-500' };
+    if (pe < 20) return { score: 4, color: 'text-yellow-500' };
+    if (pe < 30) return { score: 3, color: 'text-yellow-500' };
+    if (pe < 50) return { score: 2, color: 'text-yellow-500' };
+    return { score: 1, color: 'text-red-500' };
+  };
+
+  const getPbScore = (pb?: number | null) => {
+    if (pb === undefined || pb === null) return null;
+    if (pb < 0) return { score: 1, color: 'text-red-500' };
+    if (pb < 1) return { score: 5, color: 'text-emerald-500' };
+    if (pb < 2) return { score: 4, color: 'text-emerald-500' };
+    if (pb < 3) return { score: 3, color: 'text-yellow-500' };
+    if (pb < 5) return { score: 2, color: 'text-red-500' };
+    return { score: 1, color: 'text-red-500' };
+  };
+
+  const getHighScore = (currentPrice?: number | null, highPrice?: number | null) => {
+    if (!currentPrice || !highPrice || highPrice <= 0) return null;
+    const distancePercent = ((highPrice - currentPrice) / highPrice) * 100;
+    
+    if (distancePercent <= 10) return { score: 5, color: 'text-emerald-500' };
+    if (distancePercent <= 20) return { score: 4, color: 'text-yellow-500' };
+    if (distancePercent <= 35) return { score: 3, color: 'text-yellow-500' };
+    if (distancePercent <= 50) return { score: 2, color: 'text-yellow-500' };
+    return { score: 1, color: 'text-red-500' };
+  };
+
+  const peScoreObj = getPeScore(stock.pe);
+  const pbScoreObj = getPbScore(stock.pb);
+  const highScoreObj = getHighScore(stock.currentPrice, stock.fiftyTwoWeekHigh);
+
   return (
     <div className="container py-8 space-y-8">
       {/* Header section */}
@@ -58,7 +93,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
           <p className="text-muted-foreground text-lg">{stock.exchange}: {stock.ticker} &bull; {stock.sector} &bull; {stock.industry}</p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <div className="text-4xl font-bold">${stock.currentPrice?.toFixed(2) || 'N/A'}</div>
+          <div className="text-4xl font-bold">₹{stock.currentPrice?.toFixed(2) || 'N/A'}</div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className={`text-base ${scoreResult.color}`}>
               {scoreResult.label} (Score: {scoreResult.score})
@@ -94,19 +129,43 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
             <CardContent className="space-y-4">
               <div className="flex justify-between border-b pb-2">
                 <span className="text-muted-foreground">P/E Ratio</span>
-                <span className="font-medium">{stock.pe?.toFixed(2) || 'N/A'}</span>
+                <span className={`font-medium ${peScoreObj?.color || ''}`}>
+                  {stock.pe?.toFixed(2) || 'N/A'} {peScoreObj && <span className="text-xs ml-1">({peScoreObj.score}/5)</span>}
+                </span>
               </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-muted-foreground">P/B Ratio</span>
-                <span className="font-medium">{stock.pb?.toFixed(2) || 'N/A'}</span>
+                <span className={`font-medium ${pbScoreObj?.color || ''}`}>
+                  {stock.pb?.toFixed(2) || 'N/A'} {pbScoreObj && <span className="text-xs ml-1">({pbScoreObj.score}/5)</span>}
+                </span>
               </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-muted-foreground">EPS (TTM)</span>
-                <span className="font-medium">${stock.eps?.toFixed(2) || 'N/A'}</span>
+                <span className={`font-medium ${
+                  stock.eps !== undefined && stock.eps !== null
+                    ? stock.eps < 0
+                      ? 'text-red-500'
+                      : stock.currentPrice && stock.eps > stock.currentPrice * 0.1
+                        ? 'text-emerald-500'
+                        : 'text-yellow-500'
+                    : ''
+                }`}>
+                  ₹{stock.eps?.toFixed(2) || 'N/A'}
+                </span>
               </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-muted-foreground">ROE</span>
-                <span className="font-medium">{stock.roe ? (stock.roe * 100).toFixed(2) + '%' : 'N/A'}</span>
+                <span className={`font-medium ${
+                  stock.roe !== undefined && stock.roe !== null
+                    ? stock.roe > 0.15
+                      ? 'text-emerald-500'
+                      : stock.roe >= 0.10
+                        ? 'text-yellow-500'
+                        : 'text-red-500'
+                    : ''
+                }`}>
+                  {stock.roe ? (stock.roe * 100).toFixed(2) + '%' : 'N/A'}
+                </span>
               </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-muted-foreground">Div Yield</span>
@@ -114,11 +173,14 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
               </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-muted-foreground">52W High</span>
-                <span className="font-medium">{stock.fiftyTwoWeekHigh ? `$${stock.fiftyTwoWeekHigh.toFixed(2)}` : 'N/A'}</span>
+                <span className={`font-medium ${highScoreObj?.color || ''}`}>
+                  {stock.fiftyTwoWeekHigh ? `₹${stock.fiftyTwoWeekHigh.toFixed(2)}` : 'N/A'}
+                  {highScoreObj && <span className="text-xs ml-1">({highScoreObj.score}/5)</span>}
+                </span>
               </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-muted-foreground">52W Low</span>
-                <span className="font-medium">{stock.fiftyTwoWeekLow ? `$${stock.fiftyTwoWeekLow.toFixed(2)}` : 'N/A'}</span>
+                <span className="font-medium">{stock.fiftyTwoWeekLow ? `₹${stock.fiftyTwoWeekLow.toFixed(2)}` : 'N/A'}</span>
               </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-muted-foreground">RSI (14)</span>
@@ -140,7 +202,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
               <div className="pt-4 border-t border-dashed">
                 <div className="flex justify-between items-center">
                   <span className="font-semibold text-lg">Intrinsic Value</span>
-                  <span className="font-bold text-xl">${stock.intrinsicValue?.toFixed(2) || 'N/A'}</span>
+                  <span className="font-bold text-xl">₹{stock.intrinsicValue?.toFixed(2) || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center mt-2">
                   <span className="font-semibold text-lg">Margin of Safety</span>
