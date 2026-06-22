@@ -6,6 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { WatchlistService } from "@/services/watchlistService";
+import { JournalService } from "@/services/journalService";
+import { AddStockToWatchlistMenu } from "./_components/AddStockToWatchlistMenu";
+import { JournalEditor } from "./_components/JournalEditor";
+
 export default async function StockDetailPage({ params }: { params: Promise<{ ticker: string }> }) {
   const { ticker } = await params;
   
@@ -32,6 +39,15 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
   // Score
   const scoreResult = DecisionScoreEngine.calculateScore(stock);
 
+  // Watchlists & Journal
+  const session = await getServerSession(authOptions);
+  let userWatchlists: any[] = [];
+  let journal = null;
+  if (session?.user?.id) {
+    userWatchlists = await WatchlistService.getUserWatchlists(session.user.id);
+    journal = await JournalService.getJournal(upperTicker, session.user.id);
+  }
+
   return (
     <div className="container py-8 space-y-8">
       {/* Header section */}
@@ -42,9 +58,12 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
         </div>
         <div className="flex flex-col items-end gap-2">
           <div className="text-4xl font-bold">${stock.currentPrice?.toFixed(2) || 'N/A'}</div>
-          <Badge variant="outline" className={`text-base ${scoreResult.color}`}>
-            {scoreResult.label} (Score: {scoreResult.score})
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className={`text-base ${scoreResult.color}`}>
+              {scoreResult.label} (Score: {scoreResult.score})
+            </Badge>
+            <AddStockToWatchlistMenu ticker={upperTicker} watchlists={userWatchlists} />
+          </div>
         </div>
       </div>
 
@@ -130,19 +149,20 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
           <CardContent className="p-6">
             <TabsContent value="thesis" className="mt-0">
               <h3 className="text-lg font-semibold mb-2">Investment Thesis</h3>
-              <p className="text-muted-foreground">Log your buy thesis here (Phase 4 integration).</p>
+              <JournalEditor ticker={upperTicker} field="buyThesis" initialValue={journal?.buyThesis || ""} />
             </TabsContent>
             <TabsContent value="risks" className="mt-0">
               <h3 className="text-lg font-semibold mb-2">Risk Factors</h3>
-              <p className="text-muted-foreground">Log your risk factors here (Phase 4 integration).</p>
+              <JournalEditor ticker={upperTicker} field="riskFactors" initialValue={journal?.riskFactors || ""} />
             </TabsContent>
             <TabsContent value="technicals" className="mt-0">
-              <h3 className="text-lg font-semibold mb-2">Technical Analysis</h3>
-              <p className="text-muted-foreground">Log support/resistance here (Phase 4 integration).</p>
+              <h3 className="text-lg font-semibold mb-2">Exit Criteria / Technicals</h3>
+              <JournalEditor ticker={upperTicker} field="exitCriteria" initialValue={journal?.exitCriteria || ""} />
             </TabsContent>
             <TabsContent value="notes" className="mt-0">
               <h3 className="text-lg font-semibold mb-2">Daily Notes</h3>
-              <p className="text-muted-foreground">Add chronological notes here (Phase 4 integration).</p>
+              <p className="text-muted-foreground mb-4">Store ongoing chronological notes and convictions here.</p>
+              <JournalEditor ticker={upperTicker} field="dailyNotes" initialValue="" />
             </TabsContent>
           </CardContent>
         </Tabs>
