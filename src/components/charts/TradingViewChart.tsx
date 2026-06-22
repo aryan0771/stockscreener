@@ -137,12 +137,12 @@ export function TradingViewChart(props: TradingViewChartProps) {
       volumeSeries.setData(vData as any);
     }
 
-    // Set visible range to only the last 252 trading days (roughly 1 year)
-    // This allows MA200 to be perfectly calculated from the hidden previous year of data
-    if (data.length > 252) {
+    // Set visible range to only the last 84 trading days (roughly 4 months)
+    // This allows MA200 to be perfectly calculated from the hidden previous data
+    if (data.length > 84) {
       setTimeout(() => {
         chart.timeScale().setVisibleLogicalRange({
-          from: data.length - 252,
+          from: data.length - 84,
           to: data.length - 1,
         });
       }, 50);

@@ -107,7 +107,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
         {/* Main Chart Column */}
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Price Chart (1Y)</CardTitle>
+            <CardTitle>Price Chart (4M)</CardTitle>
           </CardHeader>
           <CardContent className="h-[400px]">
             {chartData && chartData.length > 0 ? (

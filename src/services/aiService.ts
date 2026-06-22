@@ -13,16 +13,19 @@ export class AiService {
     if (!stock) throw new Error("Stock not found");
 
     const prompt = `
-      You are an expert financial analyst. Please provide a concise, 3-paragraph summary of ${stock.companyName} (${stock.ticker}) based on the following metrics:
+      You are an expert financial analyst. Please provide a concise analysis of ${stock.companyName} (${stock.ticker}) based on the following metrics:
       - Sector: ${stock.sector}
       - Industry: ${stock.industry}
-      - Price: $${stock.currentPrice}
+      - Price: ₹${stock.currentPrice}
       - P/E Ratio: ${stock.pe}
       - P/B Ratio: ${stock.pb}
       - ROE: ${stock.roe ? (stock.roe * 100).toFixed(2) + '%' : 'N/A'}
       - Dividend Yield: ${stock.dividendYield ? (stock.dividendYield * 100).toFixed(2) + '%' : 'N/A'}
       
-      Focus on valuation, growth potential, and any immediate red flags. Keep it professional and institutional.
+      Your analysis must specifically focus on swing trading. Evaluate the current metrics to determine if this stock is a good candidate for a swing trade over the next few weeks to months. 
+      All currency values must be written in Indian Rupees (₹). DO NOT use the $ symbol under any circumstances.
+      
+      End your analysis with a bolded "**Final Verdict:**" stating clearly whether to "BUY", "HOLD", or "AVOID" for a swing trade, followed by a short one-sentence justification.
     `;
 
     try {
