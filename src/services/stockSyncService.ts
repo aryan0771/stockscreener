@@ -231,10 +231,10 @@ export class StockSyncService {
         orderBy: { date: 'asc' },
       });
 
-      // Simple heuristic: if there's no data or the most recent data is more than a week old relative to period2, we fetch and merge.
-      // For a robust system, we would query the exact missing segments, but fetching the whole range and using skipDuplicates is safer.
+      // Simple heuristic: if there's no data, or the most recent data is stale, or we are missing the older data chunk.
       const needsSync = existingData.length === 0 || 
-        (existingData[existingData.length - 1].date.getTime() < p2Date.getTime() - 7 * 24 * 60 * 60 * 1000);
+        (existingData[existingData.length - 1].date.getTime() < p2Date.getTime() - 7 * 24 * 60 * 60 * 1000) ||
+        (existingData[0].date.getTime() > p1Date.getTime() + 7 * 24 * 60 * 60 * 1000);
 
       if (needsSync) {
         const yahooData: any[] = await yahooFinance.historical(ticker, {
@@ -244,16 +244,24 @@ export class StockSyncService {
         });
 
         if (yahooData && yahooData.length > 0) {
-          // Insert into DB
-          const recordsToInsert = yahooData.map((day: any) => ({
-            stockId: stock.id,
-            date: day.date,
-            open: day.open,
-            high: day.high,
-            low: day.low,
-            close: day.close,
-            volume: day.volume,
-          }));
+          // Clear old potentially unadjusted data to ensure clean calculation
+          await prisma.historicalPrice.deleteMany({
+            where: { stockId: stock.id }
+          });
+
+          // Insert into DB using Adjusted Close ratio to account for splits/dividends
+          const recordsToInsert = yahooData.map((day: any) => {
+            const adjRatio = day.adjClose && day.close ? day.adjClose / day.close : 1;
+            return {
+              stockId: stock.id,
+              date: day.date,
+              open: day.open * adjRatio,
+              high: day.high * adjRatio,
+              low: day.low * adjRatio,
+              close: day.adjClose || day.close, // Equivalent to day.close * adjRatio
+              volume: day.volume,
+            };
+          });
 
           await prisma.historicalPrice.createMany({
             data: recordsToInsert,

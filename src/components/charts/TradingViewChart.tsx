@@ -1,6 +1,6 @@
 "use client";
 
-import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickSeries, HistogramSeries } from 'lightweight-charts';
+import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickSeries, HistogramSeries, LineSeries } from 'lightweight-charts';
 import React, { useEffect, useRef } from 'react';
 
 export interface ChartData {
@@ -23,6 +23,19 @@ interface TradingViewChartProps {
     areaTopColor?: string;
     areaBottomColor?: string;
   };
+}
+
+function calculateSMA(data: ChartData[], period: number) {
+  const smaData = [];
+  for (let i = 0; i < data.length; i++) {
+    if (i < period - 1) continue;
+    let sum = 0;
+    for (let j = 0; j < period; j++) {
+      sum += data[i - j].close;
+    }
+    smaData.push({ time: data[i].time, value: sum / period });
+  }
+  return smaData;
 }
 
 export function TradingViewChart(props: TradingViewChartProps) {
@@ -53,8 +66,8 @@ export function TradingViewChart(props: TradingViewChartProps) {
         textColor,
       },
       grid: {
-        vertLines: { color: 'rgba(197, 203, 206, 0.1)' },
-        horzLines: { color: 'rgba(197, 203, 206, 0.1)' },
+        vertLines: { color: 'rgba(197, 203, 206, 0.03)' },
+        horzLines: { color: 'rgba(197, 203, 206, 0.03)' },
       },
       width: chartContainerRef.current.clientWidth,
       height: 400,
@@ -74,7 +87,38 @@ export function TradingViewChart(props: TradingViewChartProps) {
 
     candlestickSeries.setData(data as any);
 
-    if (volumeData && volumeData.length > 0) {
+    // Calculate and add Moving Averages
+    const ma44Data = calculateSMA(data, 44);
+    const ma200Data = calculateSMA(data, 200);
+
+    if (ma44Data.length > 0) {
+      const ma44Series = chart.addSeries(LineSeries, { 
+        color: '#22c55e', 
+        lineWidth: 2, 
+        lastValueVisible: false,
+        priceLineVisible: false,
+      });
+      ma44Series.setData(ma44Data as any);
+    }
+
+    if (ma200Data.length > 0) {
+      const ma200Series = chart.addSeries(LineSeries, { 
+        color: '#a855f7', 
+        lineWidth: 2, 
+        lastValueVisible: false,
+        priceLineVisible: false,
+      });
+      ma200Series.setData(ma200Data as any);
+    }
+
+    // Always plot volume from data if not explicitly provided
+    const vData = volumeData && volumeData.length > 0 ? volumeData : data.map(d => ({
+      time: d.time,
+      value: d.value,
+      color: d.color
+    })).filter(d => d.value !== undefined);
+
+    if (vData && vData.length > 0) {
       const volumeSeries = chart.addSeries(HistogramSeries, {
         color: '#26a69a',
         priceFormat: {
@@ -90,7 +134,18 @@ export function TradingViewChart(props: TradingViewChartProps) {
         },
       });
 
-      volumeSeries.setData(volumeData as any);
+      volumeSeries.setData(vData as any);
+    }
+
+    // Set visible range to only the last 252 trading days (roughly 1 year)
+    // This allows MA200 to be perfectly calculated from the hidden previous year of data
+    if (data.length > 252) {
+      setTimeout(() => {
+        chart.timeScale().setVisibleLogicalRange({
+          from: data.length - 252,
+          to: data.length - 1,
+        });
+      }, 50);
     }
 
     window.addEventListener('resize', handleResize);

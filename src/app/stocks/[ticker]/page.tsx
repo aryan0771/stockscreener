@@ -32,10 +32,10 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
     notFound();
   }
 
-  // Get historical data for the last 6 months
-  const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-  const chartData = await StockSyncService.getHistoricalData(upperTicker, sixMonthsAgo.toISOString().split('T')[0]);
+  // Get historical data for the last 2 years to calculate 200-day MA properly
+  const twoYearsAgo = new Date();
+  twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+  const chartData = await StockSyncService.getHistoricalData(upperTicker, twoYearsAgo.toISOString().split('T')[0]);
 
   // Score
   const scoreResult = DecisionScoreEngine.calculateScore(stock);
@@ -107,7 +107,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
         {/* Main Chart Column */}
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Price Chart (6M)</CardTitle>
+            <CardTitle>Price Chart (1Y)</CardTitle>
           </CardHeader>
           <CardContent className="h-[400px]">
             {chartData && chartData.length > 0 ? (
