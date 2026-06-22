@@ -141,21 +141,90 @@ export class StockSyncService {
    */
   static async getHistoricalData(ticker: string, period1: string, period2: string = new Date().toISOString().split('T')[0]) {
     try {
-      const result: any[] = await yahooFinance.historical(ticker, {
-        period1,
-        period2,
-        interval: '1d',
+      const stock = await prisma.stock.findUnique({ where: { ticker } });
+      if (!stock) {
+        throw new Error(`Stock ${ticker} not found in database.`);
+      }
+
+      const p1Date = new Date(period1);
+      const p2Date = new Date(period2);
+
+      // Check DB for existing data
+      const existingData = await prisma.historicalPrice.findMany({
+        where: {
+          stockId: stock.id,
+          date: {
+            gte: p1Date,
+            lte: p2Date,
+          },
+        },
+        orderBy: { date: 'asc' },
       });
 
-      return result.map((day: any) => ({
+      // Simple heuristic: if there's no data or the most recent data is more than a week old relative to period2, we fetch and merge.
+      // For a robust system, we would query the exact missing segments, but fetching the whole range and using skipDuplicates is safer.
+      const needsSync = existingData.length === 0 || 
+        (existingData[existingData.length - 1].date.getTime() < p2Date.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+      if (needsSync) {
+        const yahooData: any[] = await yahooFinance.historical(ticker, {
+          period1,
+          period2,
+          interval: '1d',
+        });
+
+        if (yahooData && yahooData.length > 0) {
+          // Insert into DB
+          const recordsToInsert = yahooData.map((day: any) => ({
+            stockId: stock.id,
+            date: day.date,
+            open: day.open,
+            high: day.high,
+            low: day.low,
+            close: day.close,
+            volume: day.volume,
+          }));
+
+          await prisma.historicalPrice.createMany({
+            data: recordsToInsert,
+            skipDuplicates: true,
+          });
+          
+          // Re-fetch from DB to guarantee correct ordering and consistency
+          const updatedData = await prisma.historicalPrice.findMany({
+            where: {
+              stockId: stock.id,
+              date: {
+                gte: p1Date,
+                lte: p2Date,
+              },
+            },
+            orderBy: { date: 'asc' },
+          });
+          
+          return updatedData.map((day) => ({
+            time: day.date.toISOString().split('T')[0],
+            open: day.open,
+            high: day.high,
+            low: day.low,
+            close: day.close,
+            value: day.volume || 0,
+            color: day.close >= day.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)',
+          }));
+        }
+      }
+
+      // Return existing data if no sync was needed or sync returned no new data
+      return existingData.map((day) => ({
         time: day.date.toISOString().split('T')[0],
         open: day.open,
         high: day.high,
         low: day.low,
         close: day.close,
-        value: day.volume,
+        value: day.volume || 0,
         color: day.close >= day.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)',
       }));
+
     } catch (error) {
       console.error(`Error fetching historical data for ${ticker}:`, error);
       return [];

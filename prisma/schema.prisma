@@ -104,6 +104,7 @@ model Stock {
   technicalAnalysisNotes TechnicalAnalysisNote[]
   portfolioSimulators    PortfolioSimulator[]
   missedOpportunities    MissedOpportunity[]
+  historicalPrices       HistoricalPrice[]
 }
 
 model Watchlist {
@@ -235,4 +236,20 @@ model MissedOpportunity {
 
   stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model HistoricalPrice {
+  id      String   @id @default(uuid())
+  stockId String
+  date    DateTime
+  open    Float
+  high    Float
+  low     Float
+  close   Float
+  volume  Float?
+
+  stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
+
+  @@unique([stockId, date])
+  @@index([stockId, date(sort: Desc)])
 }
