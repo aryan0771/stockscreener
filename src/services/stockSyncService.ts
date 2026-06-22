@@ -1,6 +1,7 @@
 import YahooFinance from 'yahoo-finance2';
 const yahooFinance = new YahooFinance();
 import { prisma } from '@/lib/db';
+import https from 'https';
 
 /**
  * Service to sync stock data from Yahoo Finance to our master Stock table.
@@ -204,6 +205,44 @@ export class StockSyncService {
       }
     }
     return results;
+  }
+
+  /**
+   * Syncs the entire Nifty 100 list from the official NSE archives.
+   */
+  static async syncNifty100() {
+    return new Promise((resolve, reject) => {
+      https.get('https://archives.nseindia.com/content/indices/ind_nifty100list.csv', (res) => {
+        let data = '';
+        res.on('data', (chunk) => data += chunk);
+        res.on('end', async () => {
+          try {
+            const lines = data.split('\n');
+            const tickers = [];
+            // Skip header and loop through lines
+            for (let i = 1; i < lines.length; i++) {
+              const line = lines[i].trim();
+              if (!line) continue;
+              const columns = line.split(',');
+              if (columns.length > 2) {
+                const symbol = columns[2].trim();
+                if (symbol) {
+                  tickers.push(`${symbol}.NS`);
+                }
+              }
+            }
+            
+            console.log(`Starting bulk sync for ${tickers.length} Nifty 100 stocks...`);
+            const results = await this.syncBatch(tickers);
+            resolve(results);
+          } catch (e) {
+            reject(e);
+          }
+        });
+      }).on('error', (err) => {
+        reject(err);
+      });
+    });
   }
 
   /**
