@@ -17,12 +17,12 @@ export interface ScoreResult {
 
 export class DecisionScoreEngine {
   /**
-   * Weights:
-   * Valuation = 25%
-   * Growth = 25%
-   * Quality = 20%
-   * Technicals = 15%
-   * Sentiment = 15%
+   * Weights (Swing Trading Optimized):
+   * Technicals = 40%
+   * Valuation = 20%
+   * Growth = 15%
+   * Quality = 15%
+   * Sentiment = 10%
    */
   static calculateScore(stock: StockData, technicalScore?: number, sentimentScore?: number): ScoreResult {
     let valuationScore = 50; // out of 100
@@ -70,13 +70,43 @@ export class DecisionScoreEngine {
       qualityScore = Math.max(10, qualityScore - 20);
     }
 
+    // 4. Technicals (RSI & Momentum)
+    let calculatedTechScore = 50;
+    
+    // RSI Component (50% of Tech Score)
+    let rsiScore = 50;
+    if (stock.rsi !== null && stock.rsi !== undefined) {
+      if (stock.rsi >= 30 && stock.rsi < 45) rsiScore = 90; // Oversold bounce
+      else if (stock.rsi >= 45 && stock.rsi <= 60) rsiScore = 80; // Healthy uptrend
+      else if (stock.rsi > 60 && stock.rsi <= 70) rsiScore = 60; // Strong momentum
+      else if (stock.rsi < 30) rsiScore = 40; // Falling knife
+      else if (stock.rsi > 70) rsiScore = 30; // Overbought
+    }
+
+    // Momentum Component (50% of Tech Score)
+    let momentumScore = 50;
+    if (stock.currentPrice && stock.fiftyTwoWeekHigh) {
+      const dropFromHigh = ((stock.fiftyTwoWeekHigh - stock.currentPrice) / stock.fiftyTwoWeekHigh) * 100;
+      if (dropFromHigh <= 5) momentumScore = 90; // Breakout zone
+      else if (dropFromHigh <= 15) momentumScore = 75; // Solid uptrend
+      else if (dropFromHigh <= 30) momentumScore = 50; // Consolidation
+      else momentumScore = 20; // Downtrend
+    }
+
+    if (stock.rsi || stock.fiftyTwoWeekHigh) {
+      calculatedTechScore = (rsiScore * 0.5) + (momentumScore * 0.5);
+    }
+
+    // Override default 50 with passed technicalScore or our new calculated one
+    techScore = technicalScore ?? calculatedTechScore;
+
     // Calculate Final Score
     const finalScore = 
-      (valuationScore * 0.25) +
-      (growthScore * 0.25) +
-      (qualityScore * 0.20) +
-      (techScore * 0.15) +
-      (sentScore * 0.15);
+      (techScore * 0.40) +
+      (valuationScore * 0.20) +
+      (growthScore * 0.15) +
+      (qualityScore * 0.15) +
+      (sentScore * 0.10);
 
     const score = Math.round(finalScore);
 
