@@ -44,11 +44,8 @@ export function CreateWatchlistButton() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {/* @ts-expect-error: asChild type definition issue with Radix */}
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Create Watchlist
-        </Button>
+      <DialogTrigger render={<Button />}>
+        <Plus className="mr-2 h-4 w-4" /> Create Watchlist
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>

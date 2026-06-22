@@ -39,11 +39,8 @@ export function AddStockToWatchlistMenu({ ticker, watchlists }: { ticker: string
 
   return (
     <DropdownMenu>
-      {/* @ts-expect-error: asChild type definition issue with Radix */}
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline">
-          <BookmarkPlus className="mr-2 h-4 w-4" /> Add to Watchlist
-        </Button>
+      <DropdownMenuTrigger render={<Button variant="outline" />}>
+        <BookmarkPlus className="mr-2 h-4 w-4" /> Add to Watchlist
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>Your Watchlists</DropdownMenuLabel>
