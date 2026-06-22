@@ -10,6 +10,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import { addStockToWatchlistAction } from "@/server/watchlist.actions";
 import { useSession } from "next-auth/react";
@@ -43,20 +44,22 @@ export function AddStockToWatchlistMenu({ ticker, watchlists }: { ticker: string
         <BookmarkPlus className="mr-2 h-4 w-4" /> Add to Watchlist
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>Your Watchlists</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {watchlists.length === 0 ? (
-          <div className="p-2 text-sm text-muted-foreground text-center">
-            No watchlists found.
-          </div>
-        ) : (
-          watchlists.map((w) => (
-            <DropdownMenuItem key={w.id} onClick={() => handleAdd(w.id)} disabled={loading === w.id}>
-              {loading === w.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              {w.name}
-            </DropdownMenuItem>
-          ))
-        )}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Your Watchlists</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {watchlists.length === 0 ? (
+            <div className="p-2 text-sm text-muted-foreground text-center">
+              No watchlists found.
+            </div>
+          ) : (
+            watchlists.map((w) => (
+              <DropdownMenuItem key={w.id} onClick={() => handleAdd(w.id)} disabled={loading === w.id}>
+                {loading === w.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {w.name}
+              </DropdownMenuItem>
+            ))
+          )}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
