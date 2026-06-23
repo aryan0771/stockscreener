@@ -19,6 +19,12 @@ export default function PortfolioPage() {
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [selectedHolding, setSelectedHolding] = useState<any>(null);
 
+  // Mobile expansion state
+  const [expandedRows, setExpandedRows] = useState<string[]>([]);
+  const toggleRow = (id: string) => {
+    setExpandedRows(prev => prev.includes(id) ? prev.filter(r => r !== id) : [...prev, id]);
+  };
+
   const fetchPortfolioData = async () => {
     setLoading(true);
     try {
@@ -125,11 +131,11 @@ export default function PortfolioPage() {
       )}
 
       <Tabs defaultValue="holdings" className="w-full">
-        <TabsList className="flex flex-wrap md:inline-flex w-full md:w-auto h-auto bg-card border shadow-sm p-1 rounded-lg">
-          <TabsTrigger value="holdings" className="flex-1 md:flex-none py-2 px-6 text-sm md:text-base">Holdings</TabsTrigger>
-          <TabsTrigger value="tradebook" className="flex-1 md:flex-none py-2 px-6 text-sm md:text-base">Trade Book</TabsTrigger>
-          <TabsTrigger value="ledger" className="flex-1 md:flex-none py-2 px-6 text-sm md:text-base">Cash Ledger</TabsTrigger>
-          <TabsTrigger value="strategies" className="flex-1 md:flex-none py-2 px-6 text-sm md:text-base">Strategies</TabsTrigger>
+        <TabsList className="flex w-full overflow-x-auto overflow-y-hidden justify-start md:inline-flex md:w-auto md:justify-center bg-card border shadow-sm p-1 rounded-lg h-12 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <TabsTrigger value="holdings" className="whitespace-nowrap px-6 py-2 min-w-fit">Holdings</TabsTrigger>
+          <TabsTrigger value="tradebook" className="whitespace-nowrap px-6 py-2 min-w-fit">Trade Book</TabsTrigger>
+          <TabsTrigger value="ledger" className="whitespace-nowrap px-6 py-2 min-w-fit">Cash Ledger</TabsTrigger>
+          <TabsTrigger value="strategies" className="whitespace-nowrap px-6 py-2 min-w-fit">Strategies</TabsTrigger>
         </TabsList>
 
         <TabsContent value="holdings" className="mt-6">
@@ -144,50 +150,119 @@ export default function PortfolioPage() {
                   No open positions. Go to a stock page or screener to buy!
                 </div>
               ) : (
-                <div className="rounded-md border overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-muted/50 border-b">
-                      <tr>
-                        <th className="p-4 text-left font-medium">Stock</th>
-                        <th className="p-4 text-left font-medium">Strategy</th>
-                        <th className="p-4 text-right font-medium">Qty</th>
-                        <th className="p-4 text-right font-medium">Avg Price</th>
-                        <th className="p-4 text-right font-medium">LTP</th>
-                        <th className="p-4 text-right font-medium">Invested</th>
-                        <th className="p-4 text-right font-medium">Current</th>
-                        <th className="p-4 text-right font-medium">P&L</th>
-                        <th className="p-4 text-right font-medium">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {holdings.map((h) => (
-                        <tr key={h.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                          <td className="p-4 font-bold">
-                            <Link href={`/stocks/${h.stock.ticker}`} className="text-blue-500 hover:underline">
-                              {h.stock.ticker}
-                            </Link>
-                          </td>
-                          <td className="p-4">
-                            <span className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-xs">
-                              {h.strategy}
-                            </span>
-                          </td>
-                          <td className="p-4 text-right">{h.quantity}</td>
-                          <td className="p-4 text-right">₹{h.averagePrice.toFixed(2)}</td>
-                          <td className="p-4 text-right">₹{h.currentPrice.toFixed(2)}</td>
-                          <td className="p-4 text-right text-muted-foreground">₹{h.investedValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</td>
-                          <td className="p-4 text-right text-muted-foreground">₹{h.currentValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</td>
-                          <td className={`p-4 text-right font-bold ${h.pnl >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                            {h.pnl >= 0 ? '+' : ''}{h.pnl.toLocaleString('en-IN', { maximumFractionDigits: 2 })} ({h.pnlPercent.toFixed(2)}%)
-                          </td>
-                          <td className="p-4 text-right">
-                            <Button variant="destructive" size="sm" onClick={() => handleExitClick(h)}>Exit</Button>
-                          </td>
+                <>
+                  {/* Desktop Table */}
+                  <div className="hidden md:block rounded-md border overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-muted/50 border-b">
+                        <tr>
+                          <th className="p-4 text-left font-medium">Stock</th>
+                          <th className="p-4 text-left font-medium">Strategy</th>
+                          <th className="p-4 text-right font-medium">Qty</th>
+                          <th className="p-4 text-right font-medium">Avg Price</th>
+                          <th className="p-4 text-right font-medium">LTP</th>
+                          <th className="p-4 text-right font-medium">Invested</th>
+                          <th className="p-4 text-right font-medium">Current</th>
+                          <th className="p-4 text-right font-medium">P&L</th>
+                          <th className="p-4 text-right font-medium">Action</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {holdings.map((h) => (
+                          <tr key={h.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                            <td className="p-4 font-bold">
+                              <Link href={`/stocks/${h.stock.ticker}`} className="text-blue-500 hover:underline">
+                                {h.stock.ticker}
+                              </Link>
+                            </td>
+                            <td className="p-4">
+                              <span className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-xs">
+                                {h.strategy}
+                              </span>
+                            </td>
+                            <td className="p-4 text-right">{h.quantity}</td>
+                            <td className="p-4 text-right">₹{h.averagePrice.toFixed(2)}</td>
+                            <td className="p-4 text-right">₹{h.currentPrice.toFixed(2)}</td>
+                            <td className="p-4 text-right text-muted-foreground">₹{h.investedValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</td>
+                            <td className="p-4 text-right text-muted-foreground">₹{h.currentValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</td>
+                            <td className={`p-4 text-right font-bold ${h.pnl >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                              {h.pnl >= 0 ? '+' : ''}{h.pnl.toLocaleString('en-IN', { maximumFractionDigits: 2 })} ({h.pnlPercent.toFixed(2)}%)
+                            </td>
+                            <td className="p-4 text-right">
+                              <Button variant="destructive" size="sm" onClick={() => handleExitClick(h)}>Exit</Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Cards */}
+                  <div className="block md:hidden space-y-4">
+                    {holdings.map((h) => {
+                      const isExpanded = expandedRows.includes(h.id);
+                      return (
+                        <div key={h.id} className="border rounded-md p-4 bg-card shadow-sm">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <Link href={`/stocks/${h.stock.ticker}`} className="text-blue-500 font-bold hover:underline text-base">
+                                {h.stock.ticker}
+                              </Link>
+                              <div className="mt-1">
+                                <span className="bg-secondary text-secondary-foreground px-2 py-0.5 rounded-md text-xs">
+                                  {h.strategy}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-medium border px-2 py-1 rounded bg-muted/50">Qty: {h.quantity}</div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                            <div className="bg-muted/30 p-2 rounded">
+                              <div className="text-muted-foreground mb-1">Buy Price</div>
+                              <div className="font-medium">₹{h.averagePrice.toFixed(2)}</div>
+                            </div>
+                            <div className="bg-muted/30 p-2 rounded">
+                              <div className="text-muted-foreground mb-1">Current Price</div>
+                              <div className="font-medium">₹{h.currentPrice.toFixed(2)}</div>
+                            </div>
+                            <div className="bg-muted/30 p-2 rounded">
+                              <div className="text-muted-foreground mb-1">Invested</div>
+                              <div className="font-medium">₹{h.investedValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
+                            </div>
+                            <div className="bg-muted/30 p-2 rounded">
+                              <div className="text-muted-foreground mb-1">Current Value</div>
+                              <div className="font-medium">₹{h.currentValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
+                            </div>
+                          </div>
+
+                          {isExpanded && (
+                            <div className="mt-3 pt-3 border-t animate-in fade-in zoom-in-95 duration-200">
+                              <div className="flex justify-between items-center mb-3">
+                                <span className="text-sm text-muted-foreground">Unrealized P&L</span>
+                                <span className={`text-sm font-bold ${h.pnl >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                  {h.pnl >= 0 ? '+' : ''}{h.pnl.toLocaleString('en-IN', { maximumFractionDigits: 2 })} ({h.pnlPercent.toFixed(2)}%)
+                                </span>
+                              </div>
+                              <Button variant="destructive" className="w-full" size="sm" onClick={() => handleExitClick(h)}>Exit Position</Button>
+                            </div>
+                          )}
+
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="w-full mt-1 text-xs h-8 text-muted-foreground hover:text-foreground" 
+                            onClick={() => toggleRow(h.id)}
+                          >
+                            {isExpanded ? "Collapse Details" : "View P&L and Actions"}
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
