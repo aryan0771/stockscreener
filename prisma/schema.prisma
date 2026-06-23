@@ -109,6 +109,7 @@ model Stock {
   portfolioSimulators    PortfolioSimulator[]
   missedOpportunities    MissedOpportunity[]
   historicalPrices       HistoricalPrice[]
+  intradayPrices         IntradayPrice[]
 }
 
 model Watchlist {
@@ -256,4 +257,20 @@ model HistoricalPrice {
 
   @@unique([stockId, date])
   @@index([stockId, date(sort: Desc)])
+}
+
+model IntradayPrice {
+  id      String   @id @default(uuid())
+  stockId String
+  time    DateTime
+  open    Float
+  high    Float
+  low     Float
+  close   Float
+  volume  Float?
+
+  stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
+
+  @@unique([stockId, time])
+  @@index([stockId, time(sort: Desc)])
 }

@@ -1,6 +1,5 @@
 import { StockSyncService } from "@/services/stockSyncService";
 import { DecisionScoreEngine } from "@/services/decisionScoreEngine";
-import { TradingViewChart } from "@/components/charts/TradingViewChart";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +12,7 @@ import { JournalService } from "@/services/journalService";
 import { AddStockToWatchlistMenu } from "./_components/AddStockToWatchlistMenu";
 import { JournalEditor } from "./_components/JournalEditor";
 import { AiSummary } from "./_components/AiSummary";
+import { InteractiveChart } from "./_components/InteractiveChart";
 
 export default async function StockDetailPage({ params }: { params: Promise<{ ticker: string }> }) {
   const { ticker } = await params;
@@ -32,10 +32,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
     notFound();
   }
 
-  // Get historical data for the last 2 years to calculate 200-day MA properly
-  const twoYearsAgo = new Date();
-  twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
-  const chartData = await StockSyncService.getHistoricalData(upperTicker, twoYearsAgo.toISOString().split('T')[0]);
+
 
   // Score
   const scoreResult = DecisionScoreEngine.calculateScore(stock);
@@ -107,17 +104,11 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
         {/* Main Chart & AI Summary Column */}
         <div className="md:col-span-2 space-y-8">
           <Card>
-            <CardHeader>
-              <CardTitle>Price Chart (4M)</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Interactive Chart</CardTitle>
             </CardHeader>
-            <CardContent className="h-[400px]">
-              {chartData && chartData.length > 0 ? (
-                <TradingViewChart data={chartData} />
-              ) : (
-                <div className="flex h-full items-center justify-center text-muted-foreground">
-                  No chart data available
-                </div>
-              )}
+            <CardContent>
+              <InteractiveChart ticker={upperTicker} />
             </CardContent>
           </Card>
 

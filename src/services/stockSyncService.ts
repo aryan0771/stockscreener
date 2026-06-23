@@ -199,12 +199,143 @@ export class StockSyncService {
     for (const ticker of tickers) {
       try {
         const result = await this.syncStock(ticker);
+        
+        // Sync intraday data as well
+        await this.syncIntradayData(ticker);
+        
+        // Rate limiting delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         results.push({ ticker, status: 'success', data: result });
       } catch (error: any) {
         results.push({ ticker, status: 'error', message: error.message });
       }
     }
     return results;
+  }
+
+  /**
+   * Syncs intraday (1-minute) data for the last few days.
+   */
+  static async syncIntradayData(ticker: string) {
+    try {
+      const stock = await prisma.stock.findUnique({ where: { ticker } });
+      if (!stock) return false;
+
+      // Yahoo Finance allows 1m data for the last 7 days. We'll request 5 days.
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 5);
+
+      const chartDataResult: any = await yahooFinance.chart(ticker, {
+        period1: startDate.toISOString().split('T')[0],
+        period2: endDate.toISOString().split('T')[0],
+        interval: '1m',
+      });
+
+      const yahooData = chartDataResult?.quotes || [];
+
+      if (yahooData && yahooData.length > 0) {
+        const recordsToInsert = yahooData.map((bar: any) => ({
+          stockId: stock.id,
+          time: bar.date,
+          open: bar.open,
+          high: bar.high,
+          low: bar.low,
+          close: bar.close,
+          volume: bar.volume || null,
+        }));
+
+        await prisma.intradayPrice.createMany({
+          data: recordsToInsert,
+          skipDuplicates: true,
+        });
+
+        console.log(`Synced ${recordsToInsert.length} intraday bars for ${ticker}`);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error(`Error syncing intraday data for ${ticker}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Helper to aggregate 1-minute or 1-day bars into larger intervals.
+   */
+  static aggregateChartData(data: any[], interval: string) {
+    if (interval === '1m' || interval === '1d') {
+      const isDailyFormat = interval === '1d';
+      return data.map(b => {
+        const dateObj = new Date(b.time || b.date);
+        return {
+          ...b,
+          time: isDailyFormat ? dateObj.toISOString().split('T')[0] : Math.floor(dateObj.getTime() / 1000),
+          value: b.volume || 0,
+          color: b.close >= b.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)'
+        };
+      });
+    }
+
+    const intervalMsMap: Record<string, number> = {
+      '3m': 3 * 60 * 1000,
+      '5m': 5 * 60 * 1000,
+      '15m': 15 * 60 * 1000,
+      '1h': 60 * 60 * 1000,
+      '1w': 7 * 24 * 60 * 60 * 1000,
+      '1mo': 30 * 24 * 60 * 60 * 1000,
+    };
+
+    const periodMs = intervalMsMap[interval];
+    if (!periodMs) return data;
+
+    const aggregated = [];
+    let currentBar: any = null;
+    let currentPeriodStart = 0;
+
+    for (const bar of data) {
+      const timeMs = new Date(bar.time || bar.date).getTime();
+      const periodStart = Math.floor(timeMs / periodMs) * periodMs;
+
+      if (currentPeriodStart !== periodStart) {
+        if (currentBar) {
+          aggregated.push(currentBar);
+        }
+        currentPeriodStart = periodStart;
+        currentBar = {
+          time: new Date(periodStart),
+          open: bar.open,
+          high: bar.high,
+          low: bar.low,
+          close: bar.close,
+          volume: bar.volume || bar.value || 0,
+        };
+      } else {
+        if (currentBar) {
+          currentBar.high = Math.max(currentBar.high, bar.high);
+          currentBar.low = Math.min(currentBar.low, bar.low);
+          currentBar.close = bar.close;
+          currentBar.volume += (bar.volume || bar.value || 0);
+        }
+      }
+    }
+
+    if (currentBar) {
+      aggregated.push(currentBar);
+    }
+
+    return aggregated.map(b => {
+      // Lightweight charts requires time format 'YYYY-MM-DD' for daily, or unix timestamp (seconds) for intraday.
+      // We will provide Unix timestamp in seconds to be safe for intraday.
+      const isDailyOrAbove = ['1w', '1mo'].includes(interval);
+      return {
+        ...b,
+        time: isDailyOrAbove ? b.time.toISOString().split('T')[0] : Math.floor(b.time.getTime() / 1000),
+        value: b.volume,
+        color: b.close >= b.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)'
+      };
+    });
   }
 
   /**
