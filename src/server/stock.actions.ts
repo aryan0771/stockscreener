@@ -56,11 +56,9 @@ export async function getExploreStocksAction(filters: ExploreFilters) {
     else if (sortBy === "name_asc") orderBy = { companyName: "asc" };
     else if (sortBy === "name_desc") orderBy = { companyName: "desc" };
 
-    const [stocks, total] = await Promise.all([
-      StockService.getStocks(page, limit, where, orderBy),
-    ]);
+    const result = await StockService.getStocks(page, limit, where, orderBy);
 
-    return { success: true, data: stocks };
+    return { success: true, data: result };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to fetch explore stocks" };
   }

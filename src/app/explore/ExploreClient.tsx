@@ -128,7 +128,7 @@ export function ExploreClient() {
             </div>
 
             <div className="w-full">
-              <Select value={sortBy} onValueChange={setSortBy}>
+              <Select value={sortBy} onValueChange={(val) => setSortBy(val || "name_asc")}>
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Sort By" />
                 </SelectTrigger>

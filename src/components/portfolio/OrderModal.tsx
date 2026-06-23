@@ -109,7 +109,7 @@ export function OrderModal({
 
             <div className="flex-1 space-y-2">
               <Label htmlFor="strategy">Strategy Tag</Label>
-              <Select value={strategy} onValueChange={setStrategy}>
+              <Select value={strategy} onValueChange={(val) => setStrategy(val || "Manual")}>
                 <SelectTrigger id="strategy">
                   <SelectValue placeholder="Select Strategy" />
                 </SelectTrigger>

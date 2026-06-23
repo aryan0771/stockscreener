@@ -111,7 +111,7 @@ export default function Sma44ScreenerPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmation">Bullish Confirmation</Label>
-              <Select value={confirmation} onValueChange={setConfirmation}>
+              <Select value={confirmation} onValueChange={(val) => setConfirmation(val || "none")}>
                 <SelectTrigger id="confirmation">
                   <SelectValue placeholder="Select Confirmation" />
                 </SelectTrigger>
