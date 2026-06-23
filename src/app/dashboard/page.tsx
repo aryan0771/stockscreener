@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DecisionScoreEngine } from "@/services/decisionScoreEngine";
 import { SyncDashboardButton } from "./_components/SyncDashboardButton";
-import { Activity, TrendingDown, Target, ShieldCheck, ArrowRight, BookOpen, Bookmark, TrendingUp } from "lucide-react";
+import { Activity, TrendingDown, Target, ShieldCheck, ArrowRight, BookOpen, Bookmark, TrendingUp, Briefcase } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -126,7 +126,7 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-4">
         <Card className="bg-gradient-to-br from-card to-emerald-900/10 border-emerald-500/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Watchlists</CardTitle>
@@ -157,6 +157,18 @@ export default async function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">{recentJournals.length}</div>
             <p className="text-xs text-muted-foreground mt-1">Total written thesis</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-card to-amber-900/10 border-amber-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Paper Portfolio</CardTitle>
+            <Briefcase className="h-4 w-4 text-amber-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold mt-1">
+              <Link href="/dashboard/portfolio" className="hover:underline text-amber-600 dark:text-amber-400">View Holdings</Link>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Test your strategies risk-free</p>
           </CardContent>
         </Card>
       </div>

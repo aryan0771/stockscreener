@@ -9,6 +9,7 @@ import { Loader2, Search, TrendingUp, ChevronLeft } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Link from "next/link";
 import StockDetailModal from "../_components/StockDetailModal";
+import { OrderModal } from "@/components/portfolio/OrderModal";
 
 export default function Sma44ScreenerPage() {
   const [loading, setLoading] = useState(false);
@@ -23,6 +24,8 @@ export default function Sma44ScreenerPage() {
 
   // Modal State
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
+  const [orderModalOpen, setOrderModalOpen] = useState(false);
+  const [selectedOrderStock, setSelectedOrderStock] = useState<any>(null);
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -173,6 +176,9 @@ export default function Sma44ScreenerPage() {
                         </td>
                         <td className="p-4 text-right">
                           <div className="flex justify-end gap-2">
+                            <Button variant="default" className="bg-emerald-600 hover:bg-emerald-700 text-white" size="sm" onClick={() => { setSelectedOrderStock(r); setOrderModalOpen(true); }}>
+                              Trade
+                            </Button>
                             <Button variant="outline" size="sm" onClick={() => setSelectedTicker(r.symbol)}>
                               Chart
                             </Button>
@@ -196,6 +202,19 @@ export default function Sma44ScreenerPage() {
         <StockDetailModal 
           ticker={selectedTicker} 
           onClose={() => setSelectedTicker(null)} 
+        />
+      )}
+
+      {/* Order Modal */}
+      {selectedOrderStock && (
+        <OrderModal
+          isOpen={orderModalOpen}
+          onClose={() => { setOrderModalOpen(false); setSelectedOrderStock(null); }}
+          stockId={selectedOrderStock.stockId}
+          ticker={selectedOrderStock.symbol}
+          currentPrice={selectedOrderStock.currentPrice}
+          defaultType="BUY"
+          defaultStrategy="44SMA"
         />
       )}
     </div>

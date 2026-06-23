@@ -13,6 +13,7 @@ import { AddStockToWatchlistMenu } from "./_components/AddStockToWatchlistMenu";
 import { JournalEditor } from "./_components/JournalEditor";
 import { AiSummary } from "./_components/AiSummary";
 import { InteractiveChart } from "./_components/InteractiveChart";
+import { TradeStockButton } from "./_components/TradeStockButton";
 
 export default async function StockDetailPage({ params }: { params: Promise<{ ticker: string }> }) {
   const { ticker } = await params;
@@ -91,10 +92,11 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
         </div>
         <div className="flex flex-col items-end gap-2">
           <div className="text-4xl font-bold">₹{stock.currentPrice?.toFixed(2) || 'N/A'}</div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <Badge variant="outline" className={`text-base ${scoreResult.color}`}>
               {scoreResult.label} (Score: {scoreResult.score})
             </Badge>
+            <TradeStockButton stockId={stock.id} ticker={upperTicker} currentPrice={stock.currentPrice || 0} />
             <AddStockToWatchlistMenu ticker={upperTicker} watchlists={userWatchlists} />
           </div>
         </div>

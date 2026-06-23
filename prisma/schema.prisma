@@ -28,6 +28,9 @@ model User {
   savedScreens           SavedScreen[]
   portfolioSimulators    PortfolioSimulator[]
   missedOpportunities    MissedOpportunity[]
+  wallet                 Wallet?
+  trades                 Trade[]
+  positions              Position[]
 }
 
 enum Role {
@@ -111,6 +114,8 @@ model Stock {
   historicalPrices       HistoricalPrice[]
   intradayPrices         IntradayPrice[]
   sma44ScreeningResults  Sma44ScreeningResult[]
+  trades                 Trade[]
+  positions              Position[]
 }
 
 model Watchlist {
@@ -293,4 +298,58 @@ model Sma44ScreeningResult {
 
   @@index([createdAt])
   @@index([stockId])
+}
+
+model Wallet {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  balance   Float    @default(1000000)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+}
+
+model WalletTransaction {
+  id          String   @id @default(uuid())
+  walletId    String
+  amount      Float
+  description String
+  type        String
+  createdAt   DateTime @default(now())
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+}
+
+model Trade {
+  id        String   @id @default(uuid())
+  userId    String
+  stockId   String
+  type      String
+  quantity  Int
+  price     Float
+  strategy  String   @default("Manual")
+  createdAt DateTime @default(now())
+
+  stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model Position {
+  id           String   @id @default(uuid())
+  userId       String
+  stockId      String
+  quantity     Int
+  averagePrice Float
+  strategy     String   @default("Manual")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, stockId, strategy])
 }
