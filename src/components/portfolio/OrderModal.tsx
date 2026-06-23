@@ -83,15 +83,15 @@ export function OrderModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6 py-4">
+          <div className="flex flex-col sm:flex-row gap-6">
+            <div className="flex-1 space-y-2">
               <Label>Action</Label>
               <div className="flex rounded-md shadow-sm">
                 <Button
                   type="button"
                   variant={type === "BUY" ? "default" : "outline"}
-                  className={`w-full rounded-r-none ${type === "BUY" ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""}`}
+                  className={`flex-1 rounded-r-none ${type === "BUY" ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""}`}
                   onClick={() => setType("BUY")}
                 >
                   Buy
@@ -99,7 +99,7 @@ export function OrderModal({
                 <Button
                   type="button"
                   variant={type === "SELL" ? "default" : "outline"}
-                  className={`w-full rounded-l-none border-l-0 ${type === "SELL" ? "bg-red-600 hover:bg-red-700 text-white" : ""}`}
+                  className={`flex-1 rounded-l-none border-l-0 ${type === "SELL" ? "bg-red-600 hover:bg-red-700 text-white" : ""}`}
                   onClick={() => setType("SELL")}
                 >
                   Sell
@@ -107,7 +107,7 @@ export function OrderModal({
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="flex-1 space-y-2">
               <Label htmlFor="strategy">Strategy Tag</Label>
               <Select value={strategy} onValueChange={setStrategy}>
                 <SelectTrigger id="strategy">
@@ -122,8 +122,8 @@ export function OrderModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <div className="flex flex-col sm:flex-row gap-6">
+            <div className="flex-1 space-y-2">
               <Label htmlFor="quantity">Quantity</Label>
               <Input
                 id="quantity"
@@ -136,7 +136,7 @@ export function OrderModal({
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="flex-1 space-y-2">
               <Label htmlFor="price">Execution Price (₹)</Label>
               <Input
                 id="price"
@@ -150,12 +150,12 @@ export function OrderModal({
             </div>
           </div>
 
-          <div className="pt-4 border-t flex justify-between items-center">
+          <div className="pt-4 border-t flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="text-sm">
               <span className="text-muted-foreground">Estimated Total: </span>
               <span className="font-bold">₹{(Number(quantity) * Number(price)).toLocaleString()}</span>
             </div>
-            <Button type="submit" disabled={loading} className={type === "BUY" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"}>
+            <Button type="submit" disabled={loading} className={`w-full sm:w-auto ${type === "BUY" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"}`}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {type === "BUY" ? "Execute Buy" : "Execute Sell"}
             </Button>
