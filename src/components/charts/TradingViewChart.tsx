@@ -76,6 +76,7 @@ export function TradingViewChart(props: TradingViewChartProps) {
       timeScale: {
         timeVisible: true,
         secondsVisible: false,
+        rightOffset: 10,
       },
     });
 
@@ -153,7 +154,7 @@ export function TradingViewChart(props: TradingViewChartProps) {
       setTimeout(() => {
         chart.timeScale().setVisibleLogicalRange({
           from: data.length - candlesToShow,
-          to: data.length - 1,
+          to: data.length + 10,
         });
       }, 50);
     }

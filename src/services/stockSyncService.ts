@@ -12,13 +12,13 @@ export class StockSyncService {
    */
   static async syncStock(ticker: string) {
     try {
-      // 1. Check if we already have fresh data (updated within the last 24 hours)
+      // 1. Check if we already have fresh data (updated within the last 1 hour)
       const existingStock = await prisma.stock.findUnique({ where: { ticker } });
       if (existingStock) {
-        const oneDayAgo = new Date();
-        oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+        const oneHourAgo = new Date();
+        oneHourAgo.setHours(oneHourAgo.getHours() - 1);
         
-        if (existingStock.updatedAt > oneDayAgo && existingStock.fiftyTwoWeekHigh !== null) {
+        if (existingStock.updatedAt > oneHourAgo && existingStock.fiftyTwoWeekHigh !== null) {
           // It's fresh enough, return cached DB version
           return existingStock;
         }
