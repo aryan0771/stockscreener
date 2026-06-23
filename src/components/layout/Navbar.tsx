@@ -4,9 +4,16 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, User } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -60,9 +67,31 @@ export function Navbar() {
           </div>
           <nav className="flex items-center space-x-2">
             {session ? (
-              <Button variant="ghost" onClick={() => signOut()}>
-                Sign Out
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-accent hover:text-accent-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                  <User className="h-5 w-5" />
+                  <span className="sr-only">Toggle user menu</span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">My Account</div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <Link href="/profile" className="w-full flex-1 cursor-pointer">
+                      Profile Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link href="/dashboard/portfolio" className="w-full flex-1 cursor-pointer">
+                      Paper Portfolio
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer text-red-600 dark:text-red-400">
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
             ) : (
               <>
                 <Link href="/login">
