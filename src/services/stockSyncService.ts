@@ -229,7 +229,6 @@ export class StockSyncService {
 
       const chartDataResult: any = await yahooFinance.chart(ticker, {
         period1: startDate.toISOString().split('T')[0],
-        period2: endDate.toISOString().split('T')[0],
         interval: '1m',
       });
 
@@ -404,14 +403,15 @@ export class StockSyncService {
       });
 
       // Simple heuristic: if there's no data, or the most recent data is stale, or we are missing the older data chunk.
+      // We check if the last data point is older than 12 hours relative to midnight UTC of today.
       const needsSync = existingData.length === 0 || 
-        (existingData[existingData.length - 1].date.getTime() < p2Date.getTime() - 7 * 24 * 60 * 60 * 1000) ||
+        (existingData[existingData.length - 1].date.getTime() < p2Date.getTime() - 12 * 60 * 60 * 1000) ||
         (existingData[0].date.getTime() > p1Date.getTime() + 7 * 24 * 60 * 60 * 1000);
 
       if (needsSync) {
         const yahooData: any[] = await yahooFinance.historical(ticker, {
           period1,
-          period2,
+          period2: new Date(),
           interval: '1d',
         });
 

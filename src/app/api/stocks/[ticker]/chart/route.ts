@@ -38,14 +38,15 @@ export async function GET(
         orderBy: { date: 'asc' },
       });
       
-      // We might need to ensure StockSyncService.getHistoricalData has been called recently,
-      // but assuming the daily sync handles this, we can just return from DB.
-      if (rawData.length === 0) {
-        // Fallback to fetching it now if missing
-        rawData = await StockSyncService.getHistoricalData(upperTicker, twoYearsAgo.toISOString().split('T')[0]) as any;
-        // getHistoricalData already maps it to chart format, so we can just return it if it's 1d
+      const lastDailyBar = rawData[rawData.length - 1];
+      const needsDailySync = rawData.length === 0 || 
+        (lastDailyBar && (Date.now() - lastDailyBar.date.getTime() > 12 * 60 * 60 * 1000));
+      
+      if (needsDailySync) {
+        // Fetch and sync if missing or stale
+        const fetchedData = await StockSyncService.getHistoricalData(upperTicker, twoYearsAgo.toISOString().split('T')[0]) as any;
         if (interval === '1d') {
-          return NextResponse.json(rawData);
+          return NextResponse.json(fetchedData);
         } else {
            // We need raw DB records to aggregate 1w/1mo
            rawData = await prisma.historicalPrice.findMany({
@@ -62,8 +63,12 @@ export async function GET(
         orderBy: { time: 'asc' },
       });
       
-      if (rawData.length === 0) {
-        // Try to sync on the fly if missing
+      const lastBar = rawData[rawData.length - 1];
+      const needsSync = rawData.length === 0 || 
+        (lastBar && (Date.now() - lastBar.time.getTime() > 15 * 60 * 1000));
+
+      if (needsSync) {
+        // Try to sync on the fly if missing or older than 15 minutes
         await StockSyncService.syncIntradayData(upperTicker);
         rawData = await prisma.intradayPrice.findMany({
           where: { stockId: stock.id },
