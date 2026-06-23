@@ -110,6 +110,7 @@ model Stock {
   missedOpportunities    MissedOpportunity[]
   historicalPrices       HistoricalPrice[]
   intradayPrices         IntradayPrice[]
+  sma44ScreeningResults  Sma44ScreeningResult[]
 }
 
 model Watchlist {
@@ -273,4 +274,23 @@ model IntradayPrice {
 
   @@unique([stockId, time])
   @@index([stockId, time(sort: Desc)])
+}
+
+model Sma44ScreeningResult {
+  id               String   @id @default(uuid())
+  stockId          String
+  currentPrice     Float
+  sma44            Float
+  sma200           Float
+  distancePercent  Float
+  touchDate        DateTime?
+  confirmationType String
+  volume           Float
+  score            Float
+  createdAt        DateTime @default(now())
+
+  stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([stockId])
 }
