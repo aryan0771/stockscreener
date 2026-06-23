@@ -236,15 +236,17 @@ export class StockSyncService {
       const yahooData = chartDataResult?.quotes || [];
 
       if (yahooData && yahooData.length > 0) {
-        const recordsToInsert = yahooData.map((bar: any) => ({
-          stockId: stock.id,
-          time: bar.date,
-          open: bar.open,
-          high: bar.high,
-          low: bar.low,
-          close: bar.close,
-          volume: bar.volume || null,
-        }));
+        const recordsToInsert = yahooData
+          .filter((bar: any) => bar.open !== null && bar.open !== undefined && bar.close !== null && bar.close !== undefined)
+          .map((bar: any) => ({
+            stockId: stock.id,
+            time: bar.date,
+            open: bar.open,
+            high: bar.high,
+            low: bar.low,
+            close: bar.close,
+            volume: bar.volume || null,
+          }));
 
         await prisma.intradayPrice.createMany({
           data: recordsToInsert,
