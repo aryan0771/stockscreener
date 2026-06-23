@@ -81,38 +81,38 @@ export default function PortfolioPage() {
 
       {summary && (
         <div className="grid gap-6 md:grid-cols-4">
-          <Card className="bg-gradient-to-br from-card to-blue-900/10 border-blue-500/20">
+          <Card className="bg-gradient-to-br from-card to-blue-900/10 border-blue-500/20 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Available Cash</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Available Cash</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">₹{summary.balance.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-gradient-to-br from-card to-purple-900/10 border-purple-500/20 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Invested Value</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Invested Value</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">₹{summary.totalInvested.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-card to-amber-900/10 border-amber-500/20 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Current Value</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Current Value</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">₹{summary.totalCurrentValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
             </CardContent>
           </Card>
 
-          <Card className={`bg-gradient-to-br from-card border-opacity-20 ${
-            summary.unrealizedPnl >= 0 ? "to-emerald-900/10 border-emerald-500" : "to-red-900/10 border-red-500"
+          <Card className={`bg-gradient-to-br from-card shadow-sm border-opacity-30 ${
+            summary.unrealizedPnl >= 0 ? "to-emerald-900/20 border-emerald-500" : "to-red-900/20 border-red-500"
           }`}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Unrealized P&L</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Unrealized P&L</CardTitle>
             </CardHeader>
             <CardContent>
               <div className={`text-2xl font-bold flex items-center gap-2 ${summary.unrealizedPnl >= 0 ? "text-emerald-500" : "text-red-500"}`}>
@@ -125,11 +125,11 @@ export default function PortfolioPage() {
       )}
 
       <Tabs defaultValue="holdings" className="w-full">
-        <TabsList className="w-full md:w-auto grid grid-cols-4 h-auto">
-          <TabsTrigger value="holdings" className="py-3">Holdings</TabsTrigger>
-          <TabsTrigger value="tradebook" className="py-3">Trade Book</TabsTrigger>
-          <TabsTrigger value="ledger" className="py-3">Cash Ledger</TabsTrigger>
-          <TabsTrigger value="strategies" className="py-3">Strategies</TabsTrigger>
+        <TabsList className="flex flex-wrap md:inline-flex w-full md:w-auto h-auto bg-card border shadow-sm p-1 rounded-lg">
+          <TabsTrigger value="holdings" className="flex-1 md:flex-none py-2 px-6 text-sm md:text-base">Holdings</TabsTrigger>
+          <TabsTrigger value="tradebook" className="flex-1 md:flex-none py-2 px-6 text-sm md:text-base">Trade Book</TabsTrigger>
+          <TabsTrigger value="ledger" className="flex-1 md:flex-none py-2 px-6 text-sm md:text-base">Cash Ledger</TabsTrigger>
+          <TabsTrigger value="strategies" className="flex-1 md:flex-none py-2 px-6 text-sm md:text-base">Strategies</TabsTrigger>
         </TabsList>
 
         <TabsContent value="holdings" className="mt-6">
