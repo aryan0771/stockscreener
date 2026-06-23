@@ -50,8 +50,8 @@ export default async function WatchlistDetailPage({ params }: { params: Promise<
               No stocks added yet. Visit a stock page to add it to your watchlist!
             </div>
           ) : (
-            <div className="rounded-md border">
-              <table className="w-full text-sm">
+            <div className="rounded-md border overflow-x-auto">
+              <table className="w-full text-sm min-w-[600px]">
                 <thead className="bg-muted/50 border-b">
                   <tr>
                     <th className="p-4 text-left font-medium">Ticker</th>

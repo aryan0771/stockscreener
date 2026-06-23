@@ -90,9 +90,9 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
           <h1 className="text-4xl font-bold tracking-tight">{stock.companyName}</h1>
           <p className="text-muted-foreground text-lg">{stock.exchange}: {stock.ticker} &bull; {stock.sector} &bull; {stock.industry}</p>
         </div>
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-col items-start md:items-end gap-2">
           <div className="text-4xl font-bold">₹{stock.currentPrice?.toFixed(2) || 'N/A'}</div>
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex flex-wrap items-center justify-start md:justify-end gap-2">
             <Badge variant="outline" className={`text-base ${scoreResult.color}`}>
               {scoreResult.label} (Score: {scoreResult.score})
             </Badge>
@@ -223,11 +223,11 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
       <Card>
         <Tabs defaultValue="thesis" className="w-full">
           <CardHeader className="border-b">
-            <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
-              <TabsTrigger value="thesis">Thesis</TabsTrigger>
-              <TabsTrigger value="risks">Risks</TabsTrigger>
-              <TabsTrigger value="technicals">Technicals</TabsTrigger>
-              <TabsTrigger value="notes">Notes</TabsTrigger>
+            <TabsList className="w-full flex h-10 items-center justify-start overflow-x-auto rounded-md bg-muted p-1 text-muted-foreground [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              <TabsTrigger className="min-w-fit px-6" value="thesis">Thesis</TabsTrigger>
+              <TabsTrigger className="min-w-fit px-6" value="risks">Risks</TabsTrigger>
+              <TabsTrigger className="min-w-fit px-6" value="technicals">Technicals</TabsTrigger>
+              <TabsTrigger className="min-w-fit px-6" value="notes">Notes</TabsTrigger>
             </TabsList>
           </CardHeader>
           <CardContent className="p-6">
