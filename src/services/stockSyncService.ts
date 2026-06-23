@@ -396,7 +396,6 @@ export class StockSyncService {
           stockId: stock.id,
           date: {
             gte: p1Date,
-            lte: p2Date,
           },
         },
         orderBy: { date: 'asc' },
@@ -409,9 +408,13 @@ export class StockSyncService {
         (existingData[0].date.getTime() > p1Date.getTime() + 7 * 24 * 60 * 60 * 1000);
 
       if (needsSync) {
+        // Use tomorrow's date to ensure we capture today's active trading day
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
         const yahooData: any[] = await yahooFinance.historical(ticker, {
           period1,
-          period2: new Date(),
+          period2: tomorrow,
           interval: '1d',
         });
 
@@ -446,7 +449,6 @@ export class StockSyncService {
               stockId: stock.id,
               date: {
                 gte: p1Date,
-                lte: p2Date,
               },
             },
             orderBy: { date: 'asc' },
