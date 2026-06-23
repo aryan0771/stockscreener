@@ -20,3 +20,48 @@ export async function getStockByTickerAction(ticker: string) {
     return { success: false, error: error.message || "Failed to fetch stock" };
   }
 }
+
+export type ExploreFilters = {
+  search?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sortBy?: string;
+  page?: number;
+  limit?: number;
+};
+
+export async function getExploreStocksAction(filters: ExploreFilters) {
+  try {
+    const { search, minPrice, maxPrice, sortBy, page = 1, limit = 24 } = filters;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.StockWhereInput = {};
+    if (search) {
+      where.OR = [
+        { ticker: { contains: search, mode: "insensitive" } },
+        { companyName: { contains: search, mode: "insensitive" } },
+      ];
+    }
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      where.currentPrice = {};
+      if (minPrice !== undefined) where.currentPrice.gte = minPrice;
+      if (maxPrice !== undefined) where.currentPrice.lte = maxPrice;
+    }
+
+    let orderBy: Prisma.StockOrderByWithRelationInput = { ticker: "asc" };
+    if (sortBy === "price_asc") orderBy = { currentPrice: "asc" };
+    else if (sortBy === "price_desc") orderBy = { currentPrice: "desc" };
+    else if (sortBy === "rsi_asc") orderBy = { rsi: "asc" };
+    else if (sortBy === "rsi_desc") orderBy = { rsi: "desc" };
+    else if (sortBy === "name_asc") orderBy = { companyName: "asc" };
+    else if (sortBy === "name_desc") orderBy = { companyName: "desc" };
+
+    const [stocks, total] = await Promise.all([
+      StockService.getStocks(page, limit, where, orderBy),
+    ]);
+
+    return { success: true, data: stocks };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to fetch explore stocks" };
+  }
+}

@@ -2,10 +2,10 @@ import { StockRepository } from "@/repositories/stockRepository";
 import { Prisma } from "@prisma/client";
 
 export class StockService {
-  static async getStocks(page: number = 1, limit: number = 20, where?: Prisma.StockWhereInput) {
+  static async getStocks(page: number = 1, limit: number = 20, where?: Prisma.StockWhereInput, orderBy?: Prisma.StockOrderByWithRelationInput) {
     const skip = (page - 1) * limit;
     const [stocks, total] = await Promise.all([
-      StockRepository.findAll({ skip, take: limit, where }),
+      StockRepository.findAll({ skip, take: limit, where, orderBy }),
       StockRepository.count(where),
     ]);
 

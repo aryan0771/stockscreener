@@ -48,6 +48,9 @@ export function Navbar() {
                 <Link href="/dashboard" className="w-full flex-1">Dashboard</Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
+                <Link href="/explore" className="w-full flex-1">Explore</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
                 <Link href="/screener" className="w-full flex-1">Screener</Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
@@ -70,6 +73,9 @@ export function Navbar() {
           <nav className="flex items-center space-x-6 text-sm font-medium">
             <Link href="/dashboard" className="transition-colors hover:text-foreground/80 text-foreground/60">
               Dashboard
+            </Link>
+            <Link href="/explore" className="transition-colors hover:text-foreground/80 text-foreground/60">
+              Explore
             </Link>
             <Link href="/screener" className="transition-colors hover:text-foreground/80 text-foreground/60">
               Screener
