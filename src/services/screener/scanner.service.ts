@@ -10,6 +10,7 @@ export interface ScannerParams {
   touchLookback?: number;
   confirmation?: "bullish-candle" | "break-high" | "engulfing" | "none";
   minVolume?: number;
+  maxPrice?: number;
 }
 
 export class ScannerService {
@@ -24,11 +25,13 @@ export class ScannerService {
       touchLookback = 5,
       confirmation = "break-high",
       minVolume = 100000,
+      maxPrice,
     } = params;
 
     // Fetch all actively tracked stocks
     // In a full production system, we'd filter strictly by Exchange or Index (e.g. NIFTY 500)
     const stocks = await prisma.stock.findMany({
+      where: maxPrice ? { currentPrice: { lte: maxPrice } } : undefined,
       // We can sort by marketCap to prioritize large caps
       orderBy: { marketCap: 'desc' },
     });
@@ -60,8 +63,10 @@ export class ScannerService {
     // Sort by score descending
     matches.sort((a, b) => b.score - a.score);
 
-    // Save results to DB
-    await this.saveResults(matches);
+    // Save results to DB only for the main 44SMA scan (to avoid penny scan overwriting it)
+    if (!maxPrice) {
+      await this.saveResults(matches);
+    }
 
     return matches;
   }

@@ -14,9 +14,27 @@ export async function screenStocksAction(filters: ScreenerFilters) {
 
 export async function syncNifty100Action() {
   try {
-    const results = await StockSyncService.syncNifty100();
-    return { success: true, results };
+    const results: any = await StockSyncService.syncNifty100();
+    return { success: true, count: Array.isArray(results) ? results.length : 0 };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to sync Nifty 100" };
+  }
+}
+
+export async function syncNifty500Action() {
+  try {
+    const results: any = await StockSyncService.syncNifty500();
+    return { success: true, count: Array.isArray(results) ? results.length : 0 };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to sync Nifty 500" };
+  }
+}
+
+export async function syncPennyStocksAction() {
+  try {
+    const results: any = await StockSyncService.syncPennyStocks();
+    return { success: true, count: Array.isArray(results) ? results.length : 0 };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to sync Penny Stocks" };
   }
 }

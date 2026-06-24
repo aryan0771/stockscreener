@@ -356,29 +356,81 @@ export class StockSyncService {
           try {
             const lines = data.split('\n');
             const tickers = [];
-            // Skip header and loop through lines
             for (let i = 1; i < lines.length; i++) {
               const line = lines[i].trim();
               if (!line) continue;
               const columns = line.split(',');
               if (columns.length > 2) {
                 const symbol = columns[2].trim();
-                if (symbol) {
-                  tickers.push(`${symbol}.NS`);
-                }
+                if (symbol) tickers.push(`${symbol}.NS`);
               }
             }
-            
             console.log(`Starting bulk sync for ${tickers.length} Nifty 100 stocks...`);
             const results = await this.syncBatch(tickers);
             resolve(results);
-          } catch (e) {
-            reject(e);
-          }
+          } catch (e) { reject(e); }
         });
-      }).on('error', (err) => {
-        reject(err);
-      });
+      }).on('error', reject);
+    });
+  }
+
+  /**
+   * Syncs the Nifty 500 list.
+   */
+  static async syncNifty500() {
+    return new Promise((resolve, reject) => {
+      https.get('https://archives.nseindia.com/content/indices/ind_nifty500list.csv', (res) => {
+        let data = '';
+        res.on('data', (chunk) => data += chunk);
+        res.on('end', async () => {
+          try {
+            const lines = data.split('\n');
+            const tickers = [];
+            for (let i = 1; i < lines.length; i++) {
+              const line = lines[i].trim();
+              if (!line) continue;
+              const columns = line.split(',');
+              if (columns.length > 2) {
+                const symbol = columns[2].trim();
+                if (symbol) tickers.push(`${symbol}.NS`);
+              }
+            }
+            console.log(`Starting bulk sync for ${tickers.length} Nifty 500 stocks...`);
+            const results = await this.syncBatch(tickers);
+            resolve(results);
+          } catch (e) { reject(e); }
+        });
+      }).on('error', reject);
+    });
+  }
+
+  /**
+   * Syncs Penny/Microcap stocks using Nifty Microcap 250 as a proxy.
+   */
+  static async syncPennyStocks() {
+    return new Promise((resolve, reject) => {
+      https.get('https://archives.nseindia.com/content/indices/ind_niftymicrocap250_list.csv', (res) => {
+        let data = '';
+        res.on('data', (chunk) => data += chunk);
+        res.on('end', async () => {
+          try {
+            const lines = data.split('\n');
+            const tickers = [];
+            for (let i = 1; i < lines.length; i++) {
+              const line = lines[i].trim();
+              if (!line) continue;
+              const columns = line.split(',');
+              if (columns.length > 2) {
+                const symbol = columns[2].trim();
+                if (symbol) tickers.push(`${symbol}.NS`);
+              }
+            }
+            console.log(`Starting bulk sync for ${tickers.length} Microcap/Penny stocks...`);
+            const results = await this.syncBatch(tickers);
+            resolve(results);
+          } catch (e) { reject(e); }
+        });
+      }).on('error', reject);
     });
   }
 

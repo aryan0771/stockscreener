@@ -29,14 +29,14 @@ export function OrderModal({
 }: OrderModalProps) {
   const [type, setType] = useState<"BUY" | "SELL">(defaultType);
   const [quantity, setQuantity] = useState("1");
-  const [price, setPrice] = useState(currentPrice.toString());
+  const [price, setPrice] = useState(currentPrice.toFixed(2));
   const [strategy, setStrategy] = useState(defaultStrategy);
   const [loading, setLoading] = useState(false);
 
   // Keep price updated if currentPrice prop changes (e.g., live ticks)
   useEffect(() => {
     if (isOpen) {
-      setPrice(currentPrice.toString());
+      setPrice(currentPrice.toFixed(2));
       setType(defaultType);
     }
   }, [isOpen, currentPrice, defaultType]);

@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
     const touchLookback = parseInt(body.touchLookback) || 5;
     const confirmation = body.confirmation || "none";
     const minVolume = parseInt(body.minVolume) || 100000;
+    const maxPrice = body.maxPrice ? parseFloat(body.maxPrice) : undefined;
 
     const matches = await ScannerService.runSma44Scan({
       trendSMA,
@@ -20,6 +21,7 @@ export async function POST(req: NextRequest) {
       touchLookback,
       confirmation,
       minVolume,
+      maxPrice,
     });
 
     return NextResponse.json({
