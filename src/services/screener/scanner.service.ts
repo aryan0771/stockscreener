@@ -71,7 +71,7 @@ export class ScannerService {
     return matches;
   }
 
-  private static async evaluateStock(stock: Stock, params: Required<ScannerParams>) {
+  private static async evaluateStock(stock: Stock, params: Omit<Required<ScannerParams>, 'maxPrice'>) {
     // Determine the date range needed (we need at least 250 days of data for a 200 SMA)
     // 250 trading days is roughly 1 year.
     const oneYearAgo = new Date();
