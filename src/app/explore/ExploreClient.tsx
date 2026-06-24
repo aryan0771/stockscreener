@@ -202,9 +202,9 @@ export function ExploreClient() {
                       {stock.ticker}
                     </CardTitle>
                     <div className="flex gap-2 items-center">
-                      {stock.sma44ScreeningResults?.[0]?.score !== undefined && (
-                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-500">
-                          Score: {stock.sma44ScreeningResults[0].score.toFixed(1)}
+                      {stock.decisionScore !== undefined && (
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full bg-muted/50 ${stock.decisionColor}`}>
+                          Score: {stock.decisionScore}
                         </span>
                       )}
                       {stock.rsi && (

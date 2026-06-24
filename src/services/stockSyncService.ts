@@ -543,7 +543,7 @@ export class StockSyncService {
                 high: currentPrice,
                 low: currentPrice,
                 close: currentPrice,
-                volume: quote.regularMarketVolume || 0
+                volume: 0 // Cannot use quote.regularMarketVolume as it's the daily cumulative volume, not the 1m volume
               }
             });
           }

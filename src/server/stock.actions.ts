@@ -57,8 +57,15 @@ export async function getExploreStocksAction(filters: ExploreFilters) {
     else if (sortBy === "name_desc") orderBy = { companyName: "desc" };
 
     const result = await StockService.getStocks(page, limit, where, orderBy);
+    
+    // Dynamically calculate score for explore cards
+    const { DecisionScoreEngine } = require("@/services/decisionScoreEngine");
+    const enhancedStocks = result.stocks.map(stock => {
+      const scoreObj = DecisionScoreEngine.calculateScore(stock as any);
+      return { ...stock, decisionScore: scoreObj.score, decisionLabel: scoreObj.label, decisionColor: scoreObj.color };
+    });
 
-    return { success: true, data: result };
+    return { success: true, data: { ...result, stocks: enhancedStocks } };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to fetch explore stocks" };
   }
