@@ -103,7 +103,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
             <Badge variant="outline" className={`text-base ${scoreResult.color}`}>
               {scoreResult.label} (Score: {scoreResult.score})
             </Badge>
-            <TradeStockButton stockId={stock.id} ticker={upperTicker} currentPrice={stock.currentPrice || 0} />
+            <TradeStockButton stockId={stock.id} ticker={upperTicker} currentPrice={stock.currentPrice || 0} isLoggedIn={!!session?.user?.id} />
             <AddStockToWatchlistMenu ticker={upperTicker} watchlists={userWatchlists} />
           </div>
         </div>
