@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Briefcase, History, Wallet, TrendingUp, TrendingDown, RefreshCcw } from "lucide-react";
@@ -53,6 +53,65 @@ export default function PortfolioPage() {
 
   useEffect(() => {
     fetchPortfolioData();
+  }, []);
+
+  const holdingsRef = useRef(holdings);
+  const summaryRef = useRef(summary);
+
+  useEffect(() => {
+    holdingsRef.current = holdings;
+    summaryRef.current = summary;
+  }, [holdings, summary]);
+
+  // Real-time polling for portfolio holdings
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const currentHoldings = holdingsRef.current;
+      if (!currentHoldings || currentHoldings.length === 0) return;
+
+      const tickers = Array.from(new Set(currentHoldings.map(h => h.stock.ticker))).join(",");
+      if (!tickers) return;
+
+      try {
+        const res = await fetch(`/api/stocks/realtime?tickers=${tickers}`);
+        const json = await res.json();
+
+        if (json.success && json.data) {
+          setHoldings(prev => {
+            let isChanged = false;
+            const newHoldings = prev.map(holding => {
+              const updatedStock = json.data.find((d: any) => d.ticker === holding.stock.ticker);
+              if (updatedStock && updatedStock.currentPrice !== holding.currentPrice) {
+                isChanged = true;
+                const currentPrice = updatedStock.currentPrice;
+                const currentValue = currentPrice * holding.quantity;
+                const pnl = currentValue - holding.investedValue;
+                const pnlPercent = holding.investedValue > 0 ? (pnl / holding.investedValue) * 100 : 0;
+                return { ...holding, currentPrice, currentValue, pnl, pnlPercent };
+              }
+              return holding;
+            });
+
+            if (isChanged && summaryRef.current) {
+               const newTotalCurrentValue = newHoldings.reduce((sum, h) => sum + h.currentValue, 0);
+               const newUnrealizedPnl = newTotalCurrentValue - summaryRef.current.totalInvested;
+               
+               setSummary({
+                 ...summaryRef.current,
+                 totalCurrentValue: newTotalCurrentValue,
+                 unrealizedPnl: newUnrealizedPnl
+               });
+            }
+
+            return newHoldings;
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch real-time updates for portfolio", err);
+      }
+    }, 60000); // Poll every 60 seconds
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleExitClick = (holding: any) => {

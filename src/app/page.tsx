@@ -4,7 +4,7 @@ import { ArrowRight, BarChart3, LineChart, ShieldCheck } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] text-center px-4">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] text-center px-4 mt-6 mb-6">
       <div className="max-w-3xl space-y-8">
         <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 to-blue-500 bg-clip-text text-transparent">
           Invest With Complete Conviction

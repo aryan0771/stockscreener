@@ -21,7 +21,7 @@ const intervals = [
 ];
 
 export function InteractiveChart({ ticker }: InteractiveChartProps) {
-  const [interval, setInterval] = useState<string>("1d");
+  const [interval, setInterval] = useState<string>("1m");
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

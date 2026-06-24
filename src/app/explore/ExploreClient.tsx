@@ -109,7 +109,7 @@ export function ExploreClient() {
       } catch (err) {
         console.error("Failed to fetch real-time updates", err);
       }
-    }, 10000); // Poll every 10 seconds
+    }, 60000); // Poll every 60 seconds
 
     return () => clearInterval(interval);
   }, []);
@@ -201,15 +201,22 @@ export function ExploreClient() {
                     <CardTitle className="text-lg group-hover:text-primary transition-colors">
                       {stock.ticker}
                     </CardTitle>
-                    {stock.rsi && (
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                        stock.rsi < 30 ? 'bg-emerald-500/10 text-emerald-500' :
-                        stock.rsi > 70 ? 'bg-red-500/10 text-red-500' :
-                        'bg-blue-500/10 text-blue-500'
-                      }`}>
-                        RSI: {stock.rsi.toFixed(1)}
-                      </span>
-                    )}
+                    <div className="flex gap-2 items-center">
+                      {stock.sma44ScreeningResults?.[0]?.score !== undefined && (
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-500">
+                          Score: {stock.sma44ScreeningResults[0].score.toFixed(1)}
+                        </span>
+                      )}
+                      {stock.rsi && (
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                          stock.rsi < 30 ? 'bg-emerald-500/10 text-emerald-500' :
+                          stock.rsi > 70 ? 'bg-red-500/10 text-red-500' :
+                          'bg-blue-500/10 text-blue-500'
+                        }`}>
+                          RSI: {stock.rsi.toFixed(1)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <p className="text-xs text-muted-foreground line-clamp-1" title={stock.companyName}>
                     {stock.companyName}

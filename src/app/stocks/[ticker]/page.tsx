@@ -91,7 +91,14 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
           <p className="text-muted-foreground text-lg">{stock.exchange}: {stock.ticker} &bull; {stock.sector} &bull; {stock.industry}</p>
         </div>
         <div className="flex flex-col items-start md:items-end gap-2">
-          <div className="text-4xl font-bold">₹{stock.currentPrice?.toFixed(2) || 'N/A'}</div>
+          <div className="flex flex-col items-end">
+            <div className="text-4xl font-bold">₹{stock.currentPrice?.toFixed(2) || 'N/A'}</div>
+            {stock.updatedAt && (
+              <div className="text-sm text-muted-foreground mt-1 font-medium">
+                Last Updated: {new Date(stock.updatedAt).toLocaleString('en-IN')}
+              </div>
+            )}
+          </div>
           <div className="flex flex-wrap items-center justify-start md:justify-end gap-2">
             <Badge variant="outline" className={`text-base ${scoreResult.color}`}>
               {scoreResult.label} (Score: {scoreResult.score})

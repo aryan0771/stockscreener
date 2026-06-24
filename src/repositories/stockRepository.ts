@@ -14,12 +14,24 @@ export class StockRepository {
       take,
       where,
       orderBy,
+      include: {
+        sma44ScreeningResults: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        }
+      }
     });
   }
 
   static async findByTicker(ticker: string) {
     return prisma.stock.findUnique({
       where: { ticker },
+      include: {
+        sma44ScreeningResults: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        }
+      }
     });
   }
 
