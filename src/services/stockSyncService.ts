@@ -252,6 +252,11 @@ export class StockSyncService {
           skipDuplicates: true,
         });
 
+        await prisma.stock.update({
+          where: { id: stock.id },
+          data: { intradayLastSyncedAt: new Date() }
+        });
+
         console.log(`Synced ${recordsToInsert.length} intraday bars for ${ticker}`);
         return true;
       }
@@ -479,6 +484,83 @@ export class StockSyncService {
 
     } catch (error) {
       console.error(`Error fetching historical data for ${ticker}:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Syncs real-time quotes for an array of tickers and updates the current price.
+   * Also appends to IntradayPrice to maintain chart history.
+   */
+  static async syncRealtimeQuotes(tickers: string[]) {
+    if (!tickers || tickers.length === 0) return [];
+
+    try {
+      // Fetch quotes. yahooFinance.quote returns array if array is passed.
+      // We pass an array of up to a certain limit (e.g. 50).
+      const quotes: any = await yahooFinance.quote(tickers);
+      const quotesArray = Array.isArray(quotes) ? quotes : [quotes];
+
+      const results = [];
+      const now = new Date();
+      // Round to nearest minute for intraday tracking
+      const minuteTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes());
+
+      for (const quote of quotesArray) {
+        if (!quote || !quote.symbol || !quote.regularMarketPrice) continue;
+
+        const ticker = quote.symbol;
+        const currentPrice = quote.regularMarketPrice;
+
+        // Update Stock table
+        const stock = await prisma.stock.findUnique({ where: { ticker } });
+        if (stock) {
+          await prisma.stock.update({
+            where: { id: stock.id },
+            data: { currentPrice }
+          });
+
+          // Update IntradayPrice
+          const existingIntraday = await prisma.intradayPrice.findFirst({
+            where: { stockId: stock.id, time: minuteTime }
+          });
+
+          if (existingIntraday) {
+            await prisma.intradayPrice.update({
+              where: { id: existingIntraday.id },
+              data: {
+                high: Math.max(existingIntraday.high, currentPrice),
+                low: Math.min(existingIntraday.low, currentPrice),
+                close: currentPrice,
+              }
+            });
+          } else {
+            await prisma.intradayPrice.create({
+              data: {
+                stockId: stock.id,
+                time: minuteTime,
+                open: currentPrice,
+                high: currentPrice,
+                low: currentPrice,
+                close: currentPrice,
+                volume: quote.regularMarketVolume || 0
+              }
+            });
+          }
+
+          results.push({
+            ticker,
+            currentPrice,
+            time: minuteTime,
+            change: quote.regularMarketChange,
+            changePercent: quote.regularMarketChangePercent
+          });
+        }
+      }
+
+      return results;
+    } catch (error) {
+      console.error(`Error in syncRealtimeQuotes:`, error);
       return [];
     }
   }

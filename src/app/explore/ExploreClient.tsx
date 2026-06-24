@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -79,6 +79,40 @@ export function ExploreClient() {
   useEffect(() => {
     fetchStocks(false);
   }, [debouncedSearch, minPrice, maxPrice, sortBy]);
+
+  // Real-time polling for visible stocks
+  const stocksRef = useRef(stocks);
+  useEffect(() => {
+    stocksRef.current = stocks;
+  }, [stocks]);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const currentStocks = stocksRef.current;
+      if (currentStocks.length === 0) return;
+      
+      const tickers = currentStocks.map(s => s.ticker).join(",");
+      try {
+        const res = await fetch(`/api/stocks/realtime?tickers=${tickers}`);
+        const json = await res.json();
+        
+        if (json.success && json.data) {
+          setStocks(prev => prev.map(stock => {
+            const updatedStock = json.data.find((d: any) => d.ticker === stock.ticker);
+            // We can even add animation classes if price changed
+            if (updatedStock && updatedStock.currentPrice !== stock.currentPrice) {
+              return { ...stock, currentPrice: updatedStock.currentPrice };
+            }
+            return stock;
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch real-time updates", err);
+      }
+    }, 10000); // Poll every 10 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="space-y-6">

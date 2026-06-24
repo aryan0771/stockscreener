@@ -63,9 +63,8 @@ export async function GET(
         orderBy: { time: 'asc' },
       });
       
-      const lastBar = rawData[rawData.length - 1];
-      const needsSync = rawData.length === 0 || 
-        (lastBar && (Date.now() - lastBar.time.getTime() > 15 * 60 * 1000));
+      const lastSyncedAt = (stock as any).intradayLastSyncedAt;
+      const needsSync = !lastSyncedAt || (Date.now() - new Date(lastSyncedAt).getTime() > 15 * 60 * 1000);
 
       if (needsSync) {
         // Try to sync on the fly if missing or older than 15 minutes

@@ -101,6 +101,7 @@ model Stock {
   fiftyTwoWeekLow  Float?
   rsi              Float?
   industryPe       Float?
+  intradayLastSyncedAt DateTime?
   createdAt        DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
