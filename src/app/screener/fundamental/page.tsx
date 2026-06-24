@@ -12,9 +12,14 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, Suspense, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { useSession } from "next-auth/react";
 
 function ScreenerContent() {
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
+  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "aryan@yopmail.com";
+  const isAdmin = session?.user?.email === adminEmail;
+
   const [minPe, setMinPe] = useState("");
   const [maxPe, setMaxPe] = useState("");
   const [minRoe, setMinRoe] = useState("");
@@ -127,24 +132,26 @@ function ScreenerContent() {
             Filter the market based on strict fundamental criteria to find undervalued gems.
           </p>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={handleSyncNifty100} 
-          disabled={isSyncing}
-          className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/20"
-        >
-          {isSyncing ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Syncing ~100 Stocks...
-            </>
-          ) : (
-            <>
-              <Database className="mr-2 h-4 w-4" />
-              Sync Nifty 100
-            </>
-          )}
-        </Button>
+        {isAdmin && (
+          <Button 
+            variant="outline" 
+            onClick={handleSyncNifty100} 
+            disabled={isSyncing}
+            className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/20"
+          >
+            {isSyncing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Syncing ~100 Stocks...
+              </>
+            ) : (
+              <>
+                <Database className="mr-2 h-4 w-4" />
+                Sync Nifty 100
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       <Card>

@@ -5,10 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Database, Loader2 } from "lucide-react";
 import { syncNifty100Action } from "@/server/screener.actions";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export function SyncDashboardButton() {
+  const { data: session } = useSession();
   const [isSyncing, setIsSyncing] = useState(false);
   const router = useRouter();
+
+  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "aryan@yopmail.com";
+  const isAdmin = session?.user?.email === adminEmail;
+
+  if (!isAdmin) return null;
 
   const handleSyncNifty100 = async () => {
     if (confirm("This will fetch ~100 stocks sequentially from Yahoo Finance and take 30-60 seconds. Continue?")) {
