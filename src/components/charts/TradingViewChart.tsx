@@ -145,12 +145,22 @@ export function TradingViewChart(props: TradingViewChartProps) {
   useEffect(() => {
     if (!candlestickSeriesRef.current || !data || data.length === 0) return;
 
-    candlestickSeriesRef.current.setData(data as any);
+    // Adjust timestamp for local timezone if it's an intraday numeric timestamp
+    const tzOffsetSeconds = new Date().getTimezoneOffset() * 60;
+    const adjustTime = (d: any) => {
+      if (typeof d.time === 'number') {
+        return { ...d, time: d.time - tzOffsetSeconds };
+      }
+      return d;
+    };
+
+    const localData = data.map(adjustTime);
+    candlestickSeriesRef.current.setData(localData as any);
 
     const isDailyOrAbove = ['1d', '1w', '1mo'].includes(interval);
     if (isDailyOrAbove) {
-      const ma44Data = calculateSMA(data, 44);
-      const ma200Data = calculateSMA(data, 200);
+      const ma44Data = calculateSMA(localData, 44);
+      const ma200Data = calculateSMA(localData, 200);
 
       if (ma44SeriesRef.current && ma44Data.length > 0) {
         ma44SeriesRef.current.setData(ma44Data as any);
@@ -160,7 +170,7 @@ export function TradingViewChart(props: TradingViewChartProps) {
       }
     }
 
-    const vData = volumeData && volumeData.length > 0 ? volumeData : data.map(d => ({
+    const vData = volumeData && volumeData.length > 0 ? volumeData.map(adjustTime) : localData.map(d => ({
       time: d.time,
       value: d.value,
       color: d.color || (d.close >= d.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)')
