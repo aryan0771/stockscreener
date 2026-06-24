@@ -79,9 +79,9 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                <Link href="/screener?signal=Strong+Buy" className="hover:underline text-emerald-600 dark:text-emerald-400">{strongBuy}</Link>
+                <Link href="/screener/fundamental?signal=Strong+Buy" className="hover:underline text-emerald-600 dark:text-emerald-400">{strongBuy}</Link>
                 <span className="text-muted-foreground text-sm font-normal mx-1">/</span>
-                <Link href="/screener?signal=Watch+Closely" className="hover:underline text-blue-600 dark:text-blue-400">{watchClosely}</Link>
+                <Link href="/screener/fundamental?signal=Watch+Closely" className="hover:underline text-blue-600 dark:text-blue-400">{watchClosely}</Link>
               </div>
               <p className="text-xs text-muted-foreground mt-1">Algorithm buy signals</p>
             </CardContent>
@@ -94,7 +94,7 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                <Link href="/screener?minMos=0.01" className="hover:underline">{belowIntrinsic}</Link>
+                <Link href="/screener/fundamental?minMos=0.01" className="hover:underline">{belowIntrinsic}</Link>
               </div>
               <p className="text-xs text-muted-foreground mt-1">Margin of safety &gt; 0%</p>
             </CardContent>
@@ -107,9 +107,9 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                <Link href="/screener?trend=Uptrend" className="hover:underline text-emerald-600 dark:text-emerald-400">{uptrend}</Link>
+                <Link href="/screener/fundamental?trend=Uptrend" className="hover:underline text-emerald-600 dark:text-emerald-400">{uptrend}</Link>
                 <span className="text-muted-foreground text-sm font-normal mx-1">/</span>
-                <Link href="/screener?trend=Downtrend" className="hover:underline text-red-600 dark:text-red-400">{downtrend}</Link>
+                <Link href="/screener/fundamental?trend=Downtrend" className="hover:underline text-red-600 dark:text-red-400">{downtrend}</Link>
               </div>
               <p className="text-xs text-muted-foreground mt-1">Price momentum</p>
             </CardContent>
@@ -122,7 +122,7 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                <Link href="/screener?healthyRsi=true" className="hover:underline">{healthyRsi}</Link>
+                <Link href="/screener/fundamental?healthyRsi=true" className="hover:underline">{healthyRsi}</Link>
               </div>
               <p className="text-xs text-muted-foreground mt-1">RSI between 30 - 60</p>
             </CardContent>

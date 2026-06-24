@@ -21,7 +21,7 @@ const intervals = [
 ];
 
 export function InteractiveChart({ ticker }: InteractiveChartProps) {
-  const [interval, setInterval] = useState<string>("1m");
+  const [interval, setInterval] = useState<string>("1d");
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +81,7 @@ export function InteractiveChart({ ticker }: InteractiveChartProps) {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         )}
-        
+
         {error && !loading && (
           <div className="absolute inset-0 z-10 flex items-center justify-center text-destructive">
             {error}
