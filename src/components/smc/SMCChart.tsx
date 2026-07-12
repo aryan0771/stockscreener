@@ -3,6 +3,8 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { createChart, IChartApi, ISeriesApi, SeriesMarker, Time, CandlestickSeries, createSeriesMarkers } from 'lightweight-charts';
 import { Candle, SMCResult, SMCColors, defaultColors } from '@/types/smc';
+import { LinePrimitive } from '@/lib/smc/primitives/LinePrimitive';
+import { RectanglePrimitive } from '@/lib/smc/primitives/RectanglePrimitive';
 
 interface SMCChartProps {
   candles: Candle[];
@@ -27,6 +29,7 @@ export default function SMCChart({
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const markersRef = useRef<any>(null);
+  const primitivesRef = useRef<any[]>([]);
 
   const [chartReady, setChartReady] = useState(false);
 
@@ -125,57 +128,85 @@ export default function SMCChart({
       });
     });
 
-    // Add BOS
+    if (primitivesRef.current) {
+      primitivesRef.current.forEach(p => seriesRef.current?.detachPrimitive(p));
+      primitivesRef.current = [];
+    }
+
+    const newPrimitives: any[] = [];
+
+    // Add BOS Lines
     if (visibleToggles.bos) {
       smcResult.bos.forEach(b => {
-        markers.push({
-          time: b.endTime as Time,
-          position: b.type === 'Bullish' ? 'belowBar' : 'aboveBar',
-          color: b.type === 'Bullish' ? colors.bullishBos : colors.bearishBos,
-          shape: 'text',
-          text: `BOS`,
-        });
+        newPrimitives.push(new LinePrimitive(
+          b.startTime as Time,
+          b.endTime as Time,
+          b.price,
+          b.type === 'Bullish' ? colors.bullishBos : colors.bearishBos,
+          'BOS'
+        ));
       });
     }
 
-    // Add CHoCH
+    // Add CHoCH Lines
     if (visibleToggles.choch) {
       smcResult.choch.forEach(c => {
-        markers.push({
-          time: c.endTime as Time,
-          position: c.type === 'Bullish' ? 'belowBar' : 'aboveBar',
-          color: c.type === 'Bullish' ? colors.bullishChoch : colors.bearishChoch,
-          shape: 'text',
-          text: `CHoCH`,
-        });
+        newPrimitives.push(new LinePrimitive(
+          c.startTime as Time,
+          c.endTime as Time,
+          c.price,
+          c.type === 'Bullish' ? colors.bullishChoch : colors.bearishChoch,
+          'CHoCH'
+        ));
       });
     }
 
-    // Add FVG
+    // Add IDM Lines
+    if (visibleToggles.idm) {
+      smcResult.idm.forEach(idm => {
+        newPrimitives.push(new LinePrimitive(
+          idm.startTime as Time,
+          idm.endTime as Time,
+          idm.price,
+          colors.idm,
+          'IDM'
+        ));
+      });
+    }
+
+    // Add FVG Rectangles
     if (visibleToggles.fvg) {
       smcResult.fvgs.forEach(f => {
-        markers.push({
-          time: f.startTime as Time,
-          position: f.type === 'Bullish' ? 'belowBar' : 'aboveBar',
-          color: f.type === 'Bullish' ? colors.bullishFvg : colors.bearishFvg,
-          shape: 'text',
-          text: `FVG`,
-        });
+        // If unmitigated, extend to the last candle
+        const end = (!f.mitigated && candles.length > 0) ? candles[candles.length - 1].time : f.endTime;
+        newPrimitives.push(new RectanglePrimitive(
+          f.startTime as Time,
+          end as Time,
+          f.top,
+          f.bottom,
+          f.type === 'Bullish' ? colors.bullishFvg : colors.bearishFvg,
+          'FVG'
+        ));
       });
     }
 
-    // Add Order Blocks
+    // Add Order Blocks Rectangles
     if (visibleToggles.ob) {
       smcResult.orderBlocks.forEach(ob => {
-        markers.push({
-          time: ob.startTime as Time,
-          position: ob.type === 'Bullish' ? 'belowBar' : 'aboveBar',
-          color: ob.type === 'Bullish' ? colors.bullishOb : colors.bearishOb,
-          shape: 'text',
-          text: `OB`,
-        });
+        const end = (!ob.mitigated && candles.length > 0) ? candles[candles.length - 1].time : ob.endTime;
+        newPrimitives.push(new RectanglePrimitive(
+          ob.startTime as Time,
+          end as Time,
+          ob.top,
+          ob.bottom,
+          ob.type === 'Bullish' ? colors.bullishOb : colors.bearishOb,
+          'OB'
+        ));
       });
     }
+
+    newPrimitives.forEach(p => seriesRef.current?.attachPrimitive(p));
+    primitivesRef.current = newPrimitives;
 
     // Sort markers by time (required by lightweight-charts)
     markers.sort((a, b) => (a.time as number) - (b.time as number));
