@@ -61,14 +61,14 @@ export async function GET(req: NextRequest) {
       interval: mapping.interval,
     };
 
-    const result = await yahooFinance.chart(symbol, queryOptions);
+    const result: any = await yahooFinance.chart(symbol, queryOptions);
     
     if (!result || !result.quotes) {
        return NextResponse.json({ error: 'No data found' }, { status: 404 });
     }
 
     // Map to Candle array
-    let candles: Candle[] = result.quotes.map(q => {
+    let candles: Candle[] = result.quotes.map((q: any) => {
       // YF returns dates, we want Unix timestamp in seconds for lightweight-charts
       return {
         time: Math.floor(new Date(q.date).getTime() / 1000),
