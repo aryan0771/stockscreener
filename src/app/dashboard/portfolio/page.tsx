@@ -7,6 +7,8 @@ import { Loader2, Briefcase, History, Wallet, TrendingUp, TrendingDown, RefreshC
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { OrderModal } from "@/components/portfolio/OrderModal";
+import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function PortfolioPage() {
   const [loading, setLoading] = useState(true);
@@ -48,6 +50,29 @@ export default function PortfolioPage() {
       console.error("Failed to fetch portfolio data", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStrategyChange = async (stockId: string, oldStrategy: string, newStrategy: string) => {
+    if (oldStrategy === newStrategy) return;
+
+    try {
+      const res = await fetch("/api/portfolio/strategy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stockId, oldStrategy, newStrategy })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        toast.success(`Strategy updated to ${newStrategy}`);
+        fetchPortfolioData();
+      } else {
+        toast.error(data.error || "Failed to update strategy");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Network error updating strategy");
     }
   };
 
@@ -235,9 +260,20 @@ export default function PortfolioPage() {
                               </Link>
                             </td>
                             <td className="p-4">
-                              <span className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-xs">
-                                {h.strategy}
-                              </span>
+                              <Select 
+                                value={h.strategy} 
+                                onValueChange={(val) => handleStrategyChange(h.stockId, h.strategy, val)}
+                              >
+                                <SelectTrigger className="w-[140px] h-8 text-xs">
+                                  <SelectValue placeholder="Select Strategy" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Manual">Manual</SelectItem>
+                                  <SelectItem value="44SMA">44 SMA</SelectItem>
+                                  <SelectItem value="PENNY_44SMA">Penny 44 SMA</SelectItem>
+                                  <SelectItem value="Fundamental">Fundamental</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </td>
                             <td className="p-4 text-right">{h.quantity}</td>
                             <td className="p-4 text-right">₹{h.averagePrice.toFixed(2)}</td>
@@ -267,10 +303,21 @@ export default function PortfolioPage() {
                               <Link href={`/stocks/${h.stock.ticker}`} className="text-blue-500 font-bold hover:underline text-base">
                                 {h.stock.ticker}
                               </Link>
-                              <div className="mt-1">
-                                <span className="bg-secondary text-secondary-foreground px-2 py-0.5 rounded-md text-xs">
-                                  {h.strategy}
-                                </span>
+                              <div className="mt-2">
+                                <Select 
+                                  value={h.strategy} 
+                                  onValueChange={(val) => handleStrategyChange(h.stockId, h.strategy, val)}
+                                >
+                                  <SelectTrigger className="w-[140px] h-8 text-xs">
+                                    <SelectValue placeholder="Select Strategy" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Manual">Manual</SelectItem>
+                                    <SelectItem value="44SMA">44 SMA</SelectItem>
+                                    <SelectItem value="PENNY_44SMA">Penny 44 SMA</SelectItem>
+                                    <SelectItem value="Fundamental">Fundamental</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </div>
                             </div>
                             <div className="text-right">

@@ -140,6 +140,66 @@ export class PortfolioService {
   }
 
   /**
+   * Change the strategy of an existing position and update its trade history
+   */
+  static async changeStrategy(userId: string, stockId: string, oldStrategy: string, newStrategy: string) {
+    if (oldStrategy === newStrategy) return;
+
+    return prisma.$transaction(async (tx) => {
+      // Get the current position
+      const currentPosition = await tx.position.findUnique({
+        where: {
+          userId_stockId_strategy: { userId, stockId, strategy: oldStrategy },
+        },
+      });
+
+      if (!currentPosition) {
+        throw new Error("Position not found");
+      }
+
+      // Check if target position already exists
+      const targetPosition = await tx.position.findUnique({
+        where: {
+          userId_stockId_strategy: { userId, stockId, strategy: newStrategy },
+        },
+      });
+
+      if (targetPosition) {
+        // Merge positions
+        const newQuantity = currentPosition.quantity + targetPosition.quantity;
+        const newAverage = ((currentPosition.averagePrice * currentPosition.quantity) + (targetPosition.averagePrice * targetPosition.quantity)) / newQuantity;
+
+        await tx.position.update({
+          where: { id: targetPosition.id },
+          data: { quantity: newQuantity, averagePrice: newAverage },
+        });
+
+        await tx.position.delete({
+          where: { id: currentPosition.id },
+        });
+      } else {
+        // Just update strategy
+        await tx.position.update({
+          where: { id: currentPosition.id },
+          data: { strategy: newStrategy },
+        });
+      }
+
+      // Update all associated trades to the new strategy
+      await tx.trade.updateMany({
+        where: {
+          userId,
+          stockId,
+          strategy: oldStrategy,
+        },
+        data: {
+          strategy: newStrategy,
+        },
+      });
+    });
+  }
+
+  /**
    * Fetch active holdings and calculate current value and P&L
    */
   static async getHoldings(userId: string) {
