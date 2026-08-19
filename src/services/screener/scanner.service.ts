@@ -8,7 +8,7 @@ export interface ScannerParams {
   pullbackSMA?: number;
   distancePercent?: number;
   touchLookback?: number;
-  confirmation?: "bullish-candle" | "break-high" | "engulfing" | "none";
+  confirmation?: string | string[];
   minVolume?: number;
   maxPrice?: number;
 }
@@ -130,8 +130,15 @@ export class ScannerService {
     if (!touchResult.touched) return null;
 
     // 5. Bullish Confirmation
-    if (params.confirmation !== "none") {
-      const isConfirmed = IndicatorService.detectBullishConfirmation(data, params.confirmation as any);
+    if (params.confirmation !== "none" && !(Array.isArray(params.confirmation) && params.confirmation.includes("none"))) {
+      const confirmations = Array.isArray(params.confirmation) ? params.confirmation : [params.confirmation];
+      let isConfirmed = false;
+      for (const conf of confirmations) {
+        if (IndicatorService.detectBullishConfirmation(data, conf as any)) {
+          isConfirmed = true;
+          break; // OR logic
+        }
+      }
       if (!isConfirmed) return null;
     }
 
@@ -155,7 +162,7 @@ export class ScannerService {
       sma200: currentSma200,
       distancePercent: distTo44,
       touchDate: touchResult.touchDate,
-      confirmationType: params.confirmation,
+      confirmationType: Array.isArray(params.confirmation) ? params.confirmation.join(", ") : params.confirmation,
       volume: lastBar.volume!,
       score: parseFloat(score.toFixed(2)),
     };

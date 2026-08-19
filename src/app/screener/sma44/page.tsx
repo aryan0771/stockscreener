@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Search, TrendingUp, ChevronLeft } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import StockDetailModal from "../_components/StockDetailModal";
 import { OrderModal } from "@/components/portfolio/OrderModal";
@@ -20,7 +20,7 @@ export default function Sma44ScreenerPage() {
   // Form State
   const [distancePercent, setDistancePercent] = useState("3");
   const [touchLookback, setTouchLookback] = useState("5");
-  const [confirmation, setConfirmation] = useState("break-high");
+  const [confirmations, setConfirmations] = useState<string[]>(["none"]);
   const [minVolume, setMinVolume] = useState("100000");
 
   // Modal State
@@ -41,7 +41,7 @@ export default function Sma44ScreenerPage() {
           pullbackSMA: 44,
           distancePercent: parseFloat(distancePercent),
           touchLookback: parseInt(touchLookback),
-          confirmation,
+          confirmation: confirmations,
           minVolume: parseInt(minVolume),
         }),
       });
@@ -112,17 +112,60 @@ export default function Sma44ScreenerPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmation">Bullish Confirmation</Label>
-              <Select value={confirmation} onValueChange={(val) => setConfirmation(val || "none")}>
-                <SelectTrigger id="confirmation">
-                  <SelectValue placeholder="Select Confirmation" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Confirmation</SelectItem>
-                  <SelectItem value="bullish-candle">Green Candle</SelectItem>
-                  <SelectItem value="break-high">Break Previous High</SelectItem>
-                  <SelectItem value="engulfing">Bullish Engulfing</SelectItem>
-                </SelectContent>
-              </Select>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal" id="confirmation">
+                    {confirmations.includes("none") ? "No Confirmation" : `${confirmations.length} Selected`}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuCheckboxItem
+                    checked={confirmations.includes("none")}
+                    onCheckedChange={() => setConfirmations(["none"])}
+                  >
+                    No Confirmation
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={confirmations.includes("bullish-candle")}
+                    onCheckedChange={(checked) => {
+                      setConfirmations(prev => {
+                        const newSet = new Set(prev.filter(c => c !== "none"));
+                        if (checked) newSet.add("bullish-candle");
+                        else newSet.delete("bullish-candle");
+                        return newSet.size === 0 ? ["none"] : Array.from(newSet);
+                      });
+                    }}
+                  >
+                    Green Candle
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={confirmations.includes("break-high")}
+                    onCheckedChange={(checked) => {
+                      setConfirmations(prev => {
+                        const newSet = new Set(prev.filter(c => c !== "none"));
+                        if (checked) newSet.add("break-high");
+                        else newSet.delete("break-high");
+                        return newSet.size === 0 ? ["none"] : Array.from(newSet);
+                      });
+                    }}
+                  >
+                    Break Previous High
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={confirmations.includes("engulfing")}
+                    onCheckedChange={(checked) => {
+                      setConfirmations(prev => {
+                        const newSet = new Set(prev.filter(c => c !== "none"));
+                        if (checked) newSet.add("engulfing");
+                        else newSet.delete("engulfing");
+                        return newSet.size === 0 ? ["none"] : Array.from(newSet);
+                      });
+                    }}
+                  >
+                    Bullish Engulfing
+                  </DropdownMenuCheckboxItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             <div className="space-y-2">
               <Label htmlFor="minVolume">Minimum Volume</Label>
