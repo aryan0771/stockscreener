@@ -469,11 +469,13 @@ export class StockSyncService {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
 
-        const yahooData: any[] = await yahooFinance.historical(ticker, {
+        const chartDataResult: any = await yahooFinance.chart(ticker, {
           period1,
           period2: tomorrow,
           interval: '1d',
         });
+
+        const yahooData = chartDataResult?.quotes || [];
 
         if (yahooData && yahooData.length > 0) {
           // Clear old potentially unadjusted data to ensure clean calculation
@@ -483,14 +485,14 @@ export class StockSyncService {
 
           // Insert into DB using Adjusted Close ratio to account for splits/dividends
           const recordsToInsert = yahooData.map((day: any) => {
-            const adjRatio = day.adjClose && day.close ? day.adjClose / day.close : 1;
+            const adjRatio = day.adjclose && day.close ? day.adjclose / day.close : 1;
             return {
               stockId: stock.id,
               date: day.date,
               open: day.open * adjRatio,
               high: day.high * adjRatio,
               low: day.low * adjRatio,
-              close: day.adjClose || day.close, // Equivalent to day.close * adjRatio
+              close: day.adjclose || day.close, // Equivalent to day.close * adjRatio
               volume: day.volume,
             };
           });
