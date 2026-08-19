@@ -4,6 +4,7 @@ import { useState } from "react";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import { upsertJournalAction } from "@/server/journal.actions";
+import { toast } from "sonner";
 
 interface JournalEditorProps {
   ticker: string;
@@ -14,11 +15,9 @@ interface JournalEditorProps {
 export function JournalEditor({ ticker, field, initialValue }: JournalEditorProps) {
   const [content, setContent] = useState(initialValue || "");
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
-    setSaved(false);
     
     // For Phase 4, we use upsertJournalAction for buyThesis, riskFactors, exitCriteria.
     // DailyNotes and TechnicalNotes ideally go to their own models, but for UI simplicity here we assume they map to the same or we handle them similarly.
@@ -26,10 +25,9 @@ export function JournalEditor({ ticker, field, initialValue }: JournalEditorProp
     
     setSaving(false);
     if (res.success) {
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      toast.success("Saved successfully!");
     } else {
-      alert(res.error);
+      toast.error(res.error || "Failed to save journal.");
     }
   };
 
@@ -40,7 +38,6 @@ export function JournalEditor({ ticker, field, initialValue }: JournalEditorProp
         <Button onClick={handleSave} disabled={saving || content === initialValue}>
           {saving ? "Saving..." : "Save"}
         </Button>
-        {saved && <span className="text-sm text-emerald-500">Saved successfully!</span>}
       </div>
     </div>
   );

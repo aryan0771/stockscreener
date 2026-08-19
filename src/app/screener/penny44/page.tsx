@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Link from "next/link";
 import StockDetailModal from "../_components/StockDetailModal";
 import { OrderModal } from "@/components/portfolio/OrderModal";
+import { toast } from "sonner";
 
 export default function PennySma44ScreenerPage() {
   const [loading, setLoading] = useState(false);
@@ -50,11 +51,11 @@ export default function PennySma44ScreenerPage() {
       if (data.success) {
         setResults(data.stocks || []);
       } else {
-        alert(data.error || "Failed to run screener");
+        toast.error(data.error || "Failed to run screener");
       }
     } catch (err) {
       console.error(err);
-      alert("Network error.");
+      toast.error("Network error.");
     } finally {
       setLoading(false);
       setHasSearched(true);
@@ -70,13 +71,13 @@ export default function PennySma44ScreenerPage() {
       });
       const data = await res.json();
       if (data.success) {
-        alert("Successfully added to Penny SMA44 Watchlist!");
+        toast.success("Successfully added to Penny SMA44 Watchlist!");
       } else {
-        alert(data.error || "Failed to add to watchlist");
+        toast.error(data.error || "Failed to add to watchlist");
       }
     } catch (err) {
       console.error(err);
-      alert("Network error.");
+      toast.error("Network error.");
     }
   };
 

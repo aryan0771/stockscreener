@@ -13,6 +13,7 @@ import { useEffect, Suspense, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 function ScreenerContent() {
   const searchParams = useSearchParams();
@@ -81,7 +82,7 @@ function ScreenerContent() {
     if (res.success) {
       setResults(res.stocks || []);
     } else {
-      alert(res.error);
+      toast.error(res.error || "Failed to screen stocks");
     }
   }, []);
 
@@ -100,7 +101,22 @@ function ScreenerContent() {
     }
   }, [searchParams, executeSearch]); // Only runs on mount when searchParams populate
 
-  const handleSync = async () => {
+  const performSync = async (action: any, label: string) => {
+    setIsSyncing(true);
+    const res = await action();
+    setIsSyncing(false);
+    if (res.success) {
+      toast.success(`Successfully synced ${label} stocks!`);
+      // Refresh the screener with empty filters to show the newly imported stocks
+      setHasSearched(false);
+      const e = { preventDefault: () => {} } as React.FormEvent;
+      handleSearch(e);
+    } else {
+      toast.error(res.error || "Failed to sync");
+    }
+  };
+
+  const handleSync = () => {
     let action;
     let label;
     let confirmMsg;
@@ -119,20 +135,12 @@ function ScreenerContent() {
       confirmMsg = "This will fetch ~250 Microcap/Penny stocks sequentially. Continue?";
     }
 
-    if (confirm(confirmMsg)) {
-      setIsSyncing(true);
-      const res = await action();
-      setIsSyncing(false);
-      if (res.success) {
-        alert(`Successfully synced ${label} stocks!`);
-        // Refresh the screener with empty filters to show the newly imported stocks
-        setHasSearched(false);
-        const e = { preventDefault: () => {} } as React.FormEvent;
-        handleSearch(e);
-      } else {
-        alert(res.error || "Failed to sync");
-      }
-    }
+    toast(confirmMsg, {
+      action: {
+        label: "Sync",
+        onClick: () => performSync(action, label),
+      },
+    });
   };
 
   const handleSearch = async (e: React.FormEvent) => {

@@ -15,6 +15,7 @@ import {
 import { addStockToWatchlistAction } from "@/server/watchlist.actions";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export function AddStockToWatchlistMenu({ ticker, watchlists }: { ticker: string; watchlists: any[] }) {
   const { data: session } = useSession();
@@ -34,7 +35,9 @@ export function AddStockToWatchlistMenu({ ticker, watchlists }: { ticker: string
     const res = await addStockToWatchlistAction(watchlistId, ticker);
     setLoading(null);
     if (!res.success) {
-      alert(res.error);
+      toast.error(res.error || "Failed to add to watchlist");
+    } else {
+      toast.success(`Successfully added ${ticker} to watchlist`);
     }
   };
 

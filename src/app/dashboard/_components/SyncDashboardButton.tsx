@@ -7,6 +7,7 @@ import { syncNifty100Action, syncNifty500Action, syncPennyStocksAction } from "@
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 export function SyncDashboardButton() {
   const { data: session } = useSession();
@@ -19,7 +20,19 @@ export function SyncDashboardButton() {
 
   if (!isAdmin) return null;
 
-  const handleSync = async () => {
+  const performSync = async (action: any, label: string) => {
+    setIsSyncing(true);
+    const res = await action();
+    setIsSyncing(false);
+    if (res.success) {
+      toast.success(`Successfully synced ${label} stocks!`);
+      router.refresh();
+    } else {
+      toast.error(res.error || "Failed to sync");
+    }
+  };
+
+  const handleSync = () => {
     let action;
     let label;
     let confirmMsg;
@@ -38,17 +51,12 @@ export function SyncDashboardButton() {
       confirmMsg = "This will fetch ~250 Microcap/Penny stocks sequentially. Continue?";
     }
 
-    if (confirm(confirmMsg)) {
-      setIsSyncing(true);
-      const res = await action();
-      setIsSyncing(false);
-      if (res.success) {
-        alert(`Successfully synced ${label} stocks!`);
-        router.refresh();
-      } else {
-        alert(res.error || "Failed to sync");
-      }
-    }
+    toast(confirmMsg, {
+      action: {
+        label: "Sync",
+        onClick: () => performSync(action, label),
+      },
+    });
   };
 
   return (

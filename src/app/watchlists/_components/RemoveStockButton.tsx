@@ -4,16 +4,25 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
 import { removeStockFromWatchlistAction } from "@/server/watchlist.actions";
+import { toast } from "sonner";
 
 export function RemoveStockButton({ watchlistId, stockId, ticker }: { watchlistId: string; stockId: string; ticker: string }) {
   const [loading, setLoading] = useState(false);
 
-  const handleRemove = async () => {
-    if (!confirm(`Are you sure you want to remove ${ticker} from this watchlist?`)) return;
-    
+  const performRemove = async () => {
     setLoading(true);
     await removeStockFromWatchlistAction(watchlistId, stockId);
     setLoading(false);
+    toast.success(`${ticker} removed from watchlist`);
+  };
+
+  const handleRemove = () => {
+    toast(`Remove ${ticker} from this watchlist?`, {
+      action: {
+        label: "Remove",
+        onClick: performRemove,
+      },
+    });
   };
 
   return (

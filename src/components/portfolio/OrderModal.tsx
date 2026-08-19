@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface OrderModalProps {
   isOpen: boolean;
@@ -60,14 +61,14 @@ export function OrderModal({
 
       const data = await res.json();
       if (data.success) {
-        alert(`Successfully ${type === "BUY" ? "bought" : "sold"} ${quantity} shares of ${ticker}!`);
+        toast.success(`Successfully ${type === "BUY" ? "bought" : "sold"} ${quantity} shares of ${ticker}!`);
         onClose();
       } else {
-        alert(data.error || "Trade failed");
+        toast.error(data.error || "Trade failed");
       }
     } catch (err) {
       console.error(err);
-      alert("Network error occurred.");
+      toast.error("Network error occurred.");
     } finally {
       setLoading(false);
     }
