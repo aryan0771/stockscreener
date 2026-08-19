@@ -14,6 +14,8 @@ import { JournalEditor } from "./_components/JournalEditor";
 import { AiSummary } from "./_components/AiSummary";
 import { InteractiveChart } from "./_components/InteractiveChart";
 import { TradeStockButton } from "./_components/TradeStockButton";
+import { prisma } from "@/lib/db";
+import { Briefcase } from "lucide-react";
 
 export default async function StockDetailPage({ params }: { params: Promise<{ ticker: string }> }) {
   const { ticker } = await params;
@@ -42,10 +44,24 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
   const session = await getServerSession(authOptions);
   let userWatchlists: any[] = [];
   let journal = null;
+  let userPositions: any[] = [];
   if (session?.user?.id) {
     userWatchlists = await WatchlistService.getUserWatchlists(session.user.id);
     journal = await JournalService.getJournal(upperTicker, session.user.id);
+    userPositions = await prisma.position.findMany({
+      where: { userId: session.user.id, stockId: stock.id }
+    });
   }
+
+  const totalQuantity = userPositions.reduce((acc, pos) => acc + pos.quantity, 0);
+  let averagePrice = 0;
+  if (totalQuantity > 0) {
+    const totalInvested = userPositions.reduce((acc, pos) => acc + (pos.quantity * pos.averagePrice), 0);
+    averagePrice = totalInvested / totalQuantity;
+  }
+  const currentPrice = stock.currentPrice || 0;
+  const pnl = (currentPrice - averagePrice) * totalQuantity;
+  const pnlPercent = averagePrice > 0 ? ((currentPrice - averagePrice) / averagePrice) * 100 : 0;
 
   const getPeScore = (pe?: number | null) => {
     if (pe === undefined || pe === null) return null;
@@ -108,6 +124,23 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
           </div>
         </div>
       </div>
+
+      {totalQuantity > 0 && (
+        <div className={`flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2 rounded-md border text-sm ${pnl >= 0 ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-red-500/30 bg-red-500/10'}`}>
+          <div className="font-bold flex items-center gap-2">
+            <Briefcase className="w-4 h-4" /> In Portfolio
+          </div>
+          <div><span className="text-muted-foreground">Qty:</span> <span className="font-medium">{totalQuantity}</span></div>
+          <div><span className="text-muted-foreground">Avg:</span> <span className="font-medium">₹{averagePrice.toFixed(2)}</span></div>
+          <div><span className="text-muted-foreground">Inv:</span> <span className="font-medium">₹{(averagePrice * totalQuantity).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span></div>
+          <div className="ml-auto font-bold flex items-center gap-2">
+            <span className="text-muted-foreground font-normal">P&L:</span>
+            <span className={pnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
+              {pnl >= 0 ? '+' : ''}₹{pnl.toLocaleString('en-IN', { maximumFractionDigits: 2 })} ({pnlPercent.toFixed(2)}%)
+            </span>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-8 md:grid-cols-3">
         {/* Main Chart & AI Summary Column */}
