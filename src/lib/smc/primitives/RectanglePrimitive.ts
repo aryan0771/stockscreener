@@ -1,6 +1,6 @@
-import { ISeriesPrimitive, ISeriesPrimitivePaneView, ISeriesPrimitivePaneRenderer, Time, IChartApiBase, ISeriesApi } from 'lightweight-charts';
+import { ISeriesPrimitive, IPrimitivePaneView, IPrimitivePaneRenderer, Time, IChartApiBase, ISeriesApi } from 'lightweight-charts';
 
-class RectangleRenderer implements ISeriesPrimitivePaneRenderer {
+class RectangleRenderer implements IPrimitivePaneRenderer {
   _p1: { x: number; y: number } | null = null;
   _p2: { x: number; y: number } | null = null;
   _color: string;
@@ -41,7 +41,7 @@ class RectangleRenderer implements ISeriesPrimitivePaneRenderer {
   }
 }
 
-class RectanglePaneView implements ISeriesPrimitivePaneView {
+class RectanglePaneView implements IPrimitivePaneView {
   _source: RectanglePrimitive;
   _renderer: RectangleRenderer;
 
@@ -62,10 +62,10 @@ class RectanglePaneView implements ISeriesPrimitivePaneView {
     if (!this._source.series || !this._source.chart) return;
     
     const timeScale = this._source.chart.timeScale();
-    const x1 = timeScale.timeToCoordinate(this._source.time1);
-    let x2 = timeScale.timeToCoordinate(this._source.time2);
-    const y1 = this._source.series.priceToCoordinate(this._source.topPrice);
-    const y2 = this._source.series.priceToCoordinate(this._source.bottomPrice);
+    const x1 = timeScale.timeToCoordinate(this._source.time1) as number | null;
+    let x2 = timeScale.timeToCoordinate(this._source.time2) as number | null;
+    const y1 = this._source.series.priceToCoordinate(this._source.topPrice) as number | null;
+    const y2 = this._source.series.priceToCoordinate(this._source.bottomPrice) as number | null;
 
     if (x1 !== null && y1 !== null && y2 !== null) {
       if (x2 === null) {

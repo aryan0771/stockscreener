@@ -1,6 +1,6 @@
-import { ISeriesPrimitive, ISeriesPrimitivePaneView, ISeriesPrimitivePaneRenderer, Time, IChartApiBase, ISeriesApi } from 'lightweight-charts';
+import { ISeriesPrimitive, IPrimitivePaneView, IPrimitivePaneRenderer, Time, IChartApiBase, ISeriesApi } from 'lightweight-charts';
 
-class LineRenderer implements ISeriesPrimitivePaneRenderer {
+class LineRenderer implements IPrimitivePaneRenderer {
   _p1: { x: number; y: number } | null = null;
   _p2: { x: number; y: number } | null = null;
   _color: string;
@@ -42,7 +42,7 @@ class LineRenderer implements ISeriesPrimitivePaneRenderer {
   }
 }
 
-class LinePaneView implements ISeriesPrimitivePaneView {
+class LinePaneView implements IPrimitivePaneView {
   _source: LinePrimitive;
   _renderer: LineRenderer;
 
@@ -63,9 +63,9 @@ class LinePaneView implements ISeriesPrimitivePaneView {
     if (!this._source.series || !this._source.chart) return;
     
     const timeScale = this._source.chart.timeScale();
-    const x1 = timeScale.timeToCoordinate(this._source.time1);
-    let x2 = timeScale.timeToCoordinate(this._source.time2);
-    const y = this._source.series.priceToCoordinate(this._source.price);
+    const x1 = timeScale.timeToCoordinate(this._source.time1) as number | null;
+    let x2 = timeScale.timeToCoordinate(this._source.time2) as number | null;
+    const y = this._source.series.priceToCoordinate(this._source.price) as number | null;
 
     // If x2 is null because it's in the future (off chart bounds), we can extrapolate it or just let the chart clip it.
     // However, if the candle exists on the chart, it shouldn't be null.
