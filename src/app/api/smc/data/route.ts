@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
         close: q.close || 0,
         volume: q.volume || 0,
       };
-    }).filter(c => c.close > 0); // Remove empty data points
+    }).filter((c: Candle) => c.close > 0); // Remove empty data points
 
     // Apply custom aggregation if needed
     if (mapping.aggregateMinutes !== null) {
