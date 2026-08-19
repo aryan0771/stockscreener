@@ -113,10 +113,8 @@ export default function Sma44ScreenerPage() {
             <div className="space-y-2">
               <Label htmlFor="confirmation">Bullish Confirmation</Label>
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal" id="confirmation">
-                    {confirmations.includes("none") ? "No Confirmation" : `${confirmations.length} Selected`}
-                  </Button>
+                <DropdownMenuTrigger render={<Button variant="outline" className="w-full justify-start text-left font-normal" id="confirmation" />}>
+                  {confirmations.includes("none") ? "No Confirmation" : `${confirmations.length} Selected`}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56">
                   <DropdownMenuCheckboxItem
