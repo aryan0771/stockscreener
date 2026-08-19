@@ -17,6 +17,7 @@ interface OrderModalProps {
   currentPrice: number;
   defaultType?: "BUY" | "SELL";
   defaultStrategy?: string;
+  scoreWhenBought?: number;
 }
 
 export function OrderModal({
@@ -27,6 +28,7 @@ export function OrderModal({
   currentPrice,
   defaultType = "BUY",
   defaultStrategy = "Manual",
+  scoreWhenBought,
 }: OrderModalProps) {
   const [type, setType] = useState<"BUY" | "SELL">(defaultType);
   const [quantity, setQuantity] = useState("1");
@@ -56,6 +58,7 @@ export function OrderModal({
           quantity: Number(quantity),
           price: Number(price),
           strategy,
+          scoreWhenBought,
         }),
       });
 

@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       userId = defaultUser.id;
     }
 
-    const { stockId, type, quantity, price, strategy } = await req.json();
+    const { stockId, type, quantity, price, strategy, scoreWhenBought } = await req.json();
 
     if (!stockId || !type || !quantity || !price) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
       quantity: Number(quantity),
       price: Number(price),
       strategy: strategy || "Manual",
+      scoreWhenBought: scoreWhenBought !== undefined ? Number(scoreWhenBought) : undefined,
     });
 
     return NextResponse.json({ success: true, trade });

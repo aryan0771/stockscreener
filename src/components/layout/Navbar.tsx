@@ -59,6 +59,9 @@ export function Navbar() {
               <DropdownMenuItem>
                 <Link href="/journal" className="w-full flex-1">Journal</Link>
               </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Link href="/performance" className="w-full flex-1">Performance</Link>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -85,6 +88,9 @@ export function Navbar() {
             </Link>
             <Link href="/journal" className="transition-colors hover:text-foreground/80 text-foreground/60">
               Journal
+            </Link>
+            <Link href="/performance" className="transition-colors hover:text-foreground/80 text-foreground/60">
+              Performance
             </Link>
           </nav>
         </div>
@@ -120,6 +126,11 @@ export function Navbar() {
                   <DropdownMenuItem>
                     <Link href="/dashboard/portfolio" className="w-full flex-1 cursor-pointer">
                       Paper Portfolio
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link href="/performance" className="w-full flex-1 cursor-pointer">
+                      Trading Performance
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

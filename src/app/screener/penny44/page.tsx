@@ -217,6 +217,7 @@ export default function PennySma44ScreenerPage() {
           currentPrice={selectedOrderStock.currentPrice}
           defaultType="BUY"
           defaultStrategy="PENNY_44SMA"
+          scoreWhenBought={selectedOrderStock.score}
         />
       )}
     </div>

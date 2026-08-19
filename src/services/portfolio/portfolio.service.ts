@@ -41,8 +41,9 @@ export class PortfolioService {
     quantity: number;
     price: number;
     strategy: string;
+    scoreWhenBought?: number;
   }) {
-    const { userId, stockId, type, quantity, price, strategy } = params;
+    const { userId, stockId, type, quantity, price, strategy, scoreWhenBought } = params;
     const totalCost = quantity * price;
 
     return prisma.$transaction(async (tx) => {
@@ -88,11 +89,15 @@ export class PortfolioService {
           const newAverage = ((position.averagePrice * position.quantity) + totalCost) / newQuantity;
           await tx.position.update({
             where: { id: position.id },
-            data: { quantity: newQuantity, averagePrice: newAverage },
+            data: { 
+              quantity: newQuantity, 
+              averagePrice: newAverage,
+              scoreWhenBought: scoreWhenBought !== undefined ? scoreWhenBought : position.scoreWhenBought
+            },
           });
         } else {
           await tx.position.create({
-            data: { userId, stockId, quantity, averagePrice: price, strategy },
+            data: { userId, stockId, quantity, averagePrice: price, strategy, scoreWhenBought },
           });
         }
       } else {
@@ -129,7 +134,7 @@ export class PortfolioService {
 
       // Record Trade
       return tx.trade.create({
-        data: { userId, stockId, type, quantity, price, strategy },
+        data: { userId, stockId, type, quantity, price, strategy, scoreWhenBought },
       });
     });
   }

@@ -216,6 +216,7 @@ export default function Sma44ScreenerPage() {
           currentPrice={selectedOrderStock.currentPrice}
           defaultType="BUY"
           defaultStrategy="44SMA"
+          scoreWhenBought={selectedOrderStock.score}
         />
       )}
     </div>

@@ -324,14 +324,15 @@ model WalletTransaction {
 }
 
 model Trade {
-  id        String   @id @default(uuid())
-  userId    String
-  stockId   String
-  type      String
-  quantity  Int
-  price     Float
-  strategy  String   @default("Manual")
-  createdAt DateTime @default(now())
+  id              String   @id @default(uuid())
+  userId          String
+  stockId         String
+  type            String
+  quantity        Int
+  price           Float
+  strategy        String   @default("Manual")
+  scoreWhenBought Float?
+  createdAt       DateTime @default(now())
 
   stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -340,14 +341,15 @@ model Trade {
 }
 
 model Position {
-  id           String   @id @default(uuid())
-  userId       String
-  stockId      String
-  quantity     Int
-  averagePrice Float
-  strategy     String   @default("Manual")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String   @id @default(uuid())
+  userId          String
+  stockId         String
+  quantity        Int
+  averagePrice    Float
+  strategy        String   @default("Manual")
+  scoreWhenBought Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
