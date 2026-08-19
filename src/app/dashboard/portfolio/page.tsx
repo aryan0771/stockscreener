@@ -255,7 +255,7 @@ export default function PortfolioPage() {
                         {holdings.map((h) => (
                           <tr key={h.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                             <td className="p-4 font-bold">
-                              <Link href={`/stocks/${h.stock.ticker}`} className="text-blue-500 hover:underline">
+                              <Link href={`/stocks/${h.stock.ticker}`} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
                                 {h.stock.ticker}
                               </Link>
                             </td>
@@ -300,7 +300,7 @@ export default function PortfolioPage() {
                         <div key={h.id} className="border rounded-md p-4 bg-card shadow-sm">
                           <div className="flex justify-between items-start mb-3">
                             <div>
-                              <Link href={`/stocks/${h.stock.ticker}`} className="text-blue-500 font-bold hover:underline text-base">
+                              <Link href={`/stocks/${h.stock.ticker}`} className="text-blue-500 font-bold hover:underline text-base" target="_blank" rel="noopener noreferrer">
                                 {h.stock.ticker}
                               </Link>
                               <div className="mt-2">

@@ -65,7 +65,7 @@ export default async function WatchlistDetailPage({ params }: { params: Promise<
                   {watchlist.watchlistStocks.map((ws) => (
                     <tr key={ws.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                       <td className="p-4 font-bold">
-                        <Link href={`/stocks/${ws.stock.ticker}`} className="hover:underline">
+                        <Link href={`/stocks/${ws.stock.ticker}`} className="hover:underline" target="_blank" rel="noopener noreferrer">
                           {ws.stock.ticker}
                         </Link>
                       </td>

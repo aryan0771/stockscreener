@@ -234,7 +234,7 @@ export default async function DashboardPage() {
                           Updated {j.updatedAt ? new Date(j.updatedAt).toLocaleDateString() : 'Unknown date'}
                         </div>
                       </div>
-                      <Link href={j.stock?.ticker ? `/stocks/${j.stock.ticker}` : '#'}>
+                      <Link href={j.stock?.ticker ? `/stocks/${j.stock.ticker}` : '#'} target="_blank" rel="noopener noreferrer">
                         <Button variant="outline" size="sm" disabled={!j.stock?.ticker}>Review</Button>
                       </Link>
                     </div>

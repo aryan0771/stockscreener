@@ -281,7 +281,7 @@ function ScreenerContent() {
                     {results.map((stock) => (
                       <tr key={stock.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                         <td className="p-4 font-bold">
-                          <Link href={`/stocks/${stock.ticker}`} className="text-blue-500 hover:underline">
+                          <Link href={`/stocks/${stock.ticker}`} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
                             {stock.ticker}
                           </Link>
                         </td>

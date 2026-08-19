@@ -165,7 +165,7 @@ export default function PennySma44ScreenerPage() {
                     {results.map((r) => (
                       <tr key={r.stockId} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                         <td className="p-4 font-bold">
-                          <Link href={`/stocks/${r.symbol}`} className="text-blue-500 hover:underline">
+                          <Link href={`/stocks/${r.symbol}`} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
                             {r.symbol}
                           </Link>
                           <div className="text-xs text-muted-foreground font-normal">{r.companyName}</div>

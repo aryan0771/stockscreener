@@ -194,7 +194,7 @@ export function ExploreClient() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {stocks.map((stock) => (
-            <Link key={stock.id} href={`/stocks/${stock.ticker}`}>
+            <Link key={stock.id} href={`/stocks/${stock.ticker}`} target="_blank" rel="noopener noreferrer">
               <Card className="hover:border-primary/50 transition-colors h-full flex flex-col cursor-pointer group shadow-sm">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">

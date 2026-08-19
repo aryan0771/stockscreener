@@ -18,7 +18,7 @@ export default function Home() {
               Get Started <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
-          <Link href="/stocks/AAPL">
+          <Link href="/stocks/AAPL" target="_blank" rel="noopener noreferrer">
             <Button size="lg" variant="outline" className="w-full sm:w-auto text-lg px-8">
               View Demo Stock
             </Button>

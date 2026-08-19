@@ -46,7 +46,7 @@ export default async function WatchlistsPage() {
                   <div className="text-sm font-medium">Stocks ({watchlist.watchlistStocks.length})</div>
                   <div className="flex flex-wrap gap-2">
                     {watchlist.watchlistStocks.slice(0, 5).map((ws) => (
-                      <Link key={ws.id} href={`/stocks/${ws.stock.ticker}`}>
+                      <Link key={ws.id} href={`/stocks/${ws.stock.ticker}`} target="_blank" rel="noopener noreferrer">
                         <span className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground hover:bg-secondary/80 transition-colors">
                           {ws.stock.ticker}
                         </span>

@@ -48,7 +48,7 @@ export default async function JournalPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-xl">
-                      <Link href={`/stocks/${j.stock.ticker}`} className="hover:underline">
+                      <Link href={`/stocks/${j.stock.ticker}`} className="hover:underline" target="_blank" rel="noopener noreferrer">
                         {j.stock.ticker}
                       </Link>
                     </CardTitle>
@@ -80,7 +80,7 @@ export default async function JournalPage() {
                 )}
               </CardContent>
               <div className="p-6 pt-0 mt-auto">
-                <Link href={`/stocks/${j.stock.ticker}`}>
+                <Link href={`/stocks/${j.stock.ticker}`} target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" className="w-full">Edit Journal</Button>
                 </Link>
               </div>

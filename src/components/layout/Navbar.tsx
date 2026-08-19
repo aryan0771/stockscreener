@@ -23,7 +23,7 @@ export function Navbar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (search.trim()) {
-      router.push(`/stocks/${search.trim().toUpperCase()}`);
+      window.open(`/stocks/${search.trim().toUpperCase()}`, '_blank');
       setSearch("");
     }
   };
@@ -54,13 +54,7 @@ export function Navbar() {
                 <Link href="/screener" className="w-full flex-1">Screener</Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Link href="/watchlists" className="w-full flex-1">Watchlists</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link href="/journal" className="w-full flex-1">Journal</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link href="/performance" className="w-full flex-1">Performance</Link>
+                <Link href="/dashboard/portfolio" className="w-full flex-1">Portfolio</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -83,11 +77,8 @@ export function Navbar() {
             <Link href="/screener" className="transition-colors hover:text-foreground/80 text-foreground/60">
               Screener
             </Link>
-            <Link href="/watchlists" className="transition-colors hover:text-foreground/80 text-foreground/60">
-              Watchlists
-            </Link>
-            <Link href="/journal" className="transition-colors hover:text-foreground/80 text-foreground/60">
-              Journal
+            <Link href="/dashboard/portfolio" className="transition-colors hover:text-foreground/80 text-foreground/60">
+              Portfolio
             </Link>
             <Link href="/performance" className="transition-colors hover:text-foreground/80 text-foreground/60">
               Performance
@@ -124,10 +115,16 @@ export function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Link href="/dashboard/portfolio" className="w-full flex-1 cursor-pointer">
-                      Paper Portfolio
+                    <Link href="/watchlists" className="w-full flex-1 cursor-pointer">
+                      Watchlists
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link href="/journal" className="w-full flex-1 cursor-pointer">
+                      Journal
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem>
                     <Link href="/performance" className="w-full flex-1 cursor-pointer">
                       Trading Performance
